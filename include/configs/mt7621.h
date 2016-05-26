@@ -12,6 +12,7 @@
  */
 #define CONFIG_MT7621
 #define CONFIG_BOARD_EARLY_INIT_F
+#define CONFIG_SKIP_LOWLEVEL_INIT
 #define CONFIG_DISPLAY_BOARDINFO
 
 #define CONFIG_MEMSIZE_IN_BYTES
@@ -20,8 +21,6 @@
 #define CONFIG_PCNET_79C973
 #define PCNET_HAS_PROM
 
-#define CONFIG_MISC_INIT_R
-#define CONFIG_RTC_MC146818
 #define CONFIG_SYS_ISA_IO_BASE_ADDRESS	0
 
 /*
@@ -69,6 +68,8 @@
 #define CONFIG_SYS_NS16550_COM2		0xbb0003f8
 #define CONFIG_CONS_INDEX		1
 
+
+
 /*
  * Flash configuration
  */
@@ -101,10 +102,8 @@
 /*
  * Commands
  */
-#define CONFIG_CMD_DATE
-#define CONFIG_CMD_IDE
-#define CONFIG_CMD_PCI
 
+#define CONFIG_CMD_IDE
 #define CONFIG_SYS_LONGHELP		/* verbose help, undef to save memory */
 
 #endif /* _MALTA_CONFIG_H */
