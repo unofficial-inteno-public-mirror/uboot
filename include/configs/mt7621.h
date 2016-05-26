@@ -32,7 +32,7 @@
 /*
  * Memory map
  */
-#define CONFIG_SYS_TEXT_BASE		0xbe000000 /* Rom version */
+#define CONFIG_SYS_TEXT_BASE		0xbfc00000 /* Rom version */
 #define CONFIG_SYS_MONITOR_BASE		CONFIG_SYS_TEXT_BASE
 
 #define CONFIG_SYS_SDRAM_BASE		0x80000000 /* Cached addr */
@@ -60,6 +60,8 @@
  * Serial driver
  */
 #define CONFIG_BAUDRATE			115200
+#define SERIAL_CLOCK_DIVISOR 16
+#define MT7621_ASIC_BOARD
 
 #define CONFIG_SYS_NS16550_SERIAL
 #define CONFIG_SYS_NS16550_REG_SIZE	1
