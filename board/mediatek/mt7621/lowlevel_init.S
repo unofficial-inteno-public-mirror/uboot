@@ -200,6 +200,14 @@ reset:
 	nop
 #endif
 
+	.set noreorder
+	.globl lowlevel_init
+	.text
+lowlevel_init:
+	b	__reset_vector
+	nop
+
+
 /**************************************************************************************
  Register use while executing in this file: ("GLOBAL" denotes a common value.)
 **************************************************************************************/
@@ -1978,9 +1986,12 @@ in_ram:
 
 	.end	relocate_code
 
+#if 0
 	/* Exception handlers */
 romReserved:
 	b	romReserved
 
 romExcHandle:
 	b	romExcHandle
+#endif
+
