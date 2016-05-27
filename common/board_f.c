@@ -62,6 +62,11 @@
 #include <dm/root.h>
 #include <linux/compiler.h>
 
+
+
+int say_hello(void);
+int mt_serial_init (void);
+
 /*
  * Pointer to initial global data area
  *
@@ -888,6 +893,8 @@ static init_fnc_t init_sequence_f[] = {
 	init_timebase,
 #endif
 	init_baud_rate,		/* initialze baudrate settings */
+	mt_serial_init,		/* serial communications setup */
+	say_hello,
 	serial_init,		/* serial communications setup */
 	console_init_f,		/* stage 1 init of console */
 #ifdef CONFIG_SANDBOX

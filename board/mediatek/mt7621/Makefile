@@ -6,5 +6,5 @@
 #
 
 obj-y	= board.o
-
+obj-y  += serial.o
 

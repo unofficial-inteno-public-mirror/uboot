@@ -11,6 +11,7 @@
  * System configuration
  */
 #define CONFIG_MT7621
+
 #define CONFIG_BOARD_EARLY_INIT_F
 #define CONFIG_SKIP_LOWLEVEL_INIT
 #define CONFIG_DISPLAY_BOARDINFO
@@ -23,10 +24,13 @@
 
 #define CONFIG_SYS_ISA_IO_BASE_ADDRESS	0
 
+#define MT7621_ASIC_BOARD
+
+
 /*
  * CPU Configuration
  */
-#define CONFIG_SYS_MHZ			250	/* arbitrary value */
+#define CONFIG_SYS_MHZ			880	/* arbitrary value */
 #define CONFIG_SYS_MIPS_TIMER_FREQ	(CONFIG_SYS_MHZ * 1000000)
 
 /*
@@ -59,9 +63,9 @@
 /*
  * Serial driver
  */
-#define CONFIG_BAUDRATE			115200
+#define CONFIG_BAUDRATE			57600
 #define SERIAL_CLOCK_DIVISOR 16
-#define MT7621_ASIC_BOARD
+
 
 #define CONFIG_SYS_NS16550_SERIAL
 #define CONFIG_SYS_NS16550_REG_SIZE	1
@@ -75,7 +79,7 @@
 /*
  * Flash configuration
  */
-#define CONFIG_SYS_FLASH_BASE		0xbe000000
+#define CONFIG_SYS_FLASH_BASE		0xbfc00000
 #define CONFIG_SYS_MAX_FLASH_BANKS	1
 #define CONFIG_SYS_MAX_FLASH_SECT	128
 #define CONFIG_SYS_FLASH_CFI
