@@ -2,7 +2,9 @@
 #include <asm/regdef.h>
 #include <asm/mipsregs.h>
 #include <rt_mmap.h>
+#include <sysdefs.h>
 #include <ArchDefs.h>
+#include <launch.h>
 
 #define CODE_ALIGN      .align  2
 
