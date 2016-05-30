@@ -1,6 +1,7 @@
 #include <config.h>
 #include <asm/regdef.h>
 #include <asm/mipsregs.h>
+/*#include <asm/mipsmtregs.h>*/
 #include <rt_mmap.h>
 #include <sysdefs.h>
 #include <ArchDefs.h>
@@ -500,8 +501,10 @@ finish_initialisation:
 	li	t0, CONFIG_SYS_SDRAM_BASE + CONFIG_SYS_INIT_SP_OFFSET
 	la	sp, 0(t0)
 	set_tag 0x06
+#if 0
 	lui	t9, %hi(board_init_f)
 	addiu t9, %lo(board_init_f)
+#endif
 	jr	t9
 	nop
 
@@ -567,8 +570,10 @@ set_gpr_boot_values:
     mfc0    r4_temp_data, $15, 1                # Read CP0 EBase
 	ext	    r23_cpu_num, r4_temp_data, 0, 4     # Extract CPUNum
     li      r24_malta_word, MALTA_DISP_ADDR     # Need for reporting failed assertions.
+#if 0
     lui     r28_global_addr, %hi(_gp)                # All vpe share globals.
 	addiu	r28_global_addr, %lo(_gp)
+#endif
     li      r29_stack_addr, STACK_BASE_ADDR     # Each vpe gets it's own stack.
     ins     r29_stack_addr, r23_cpu_num, STACK_SIZE_LOG2, 3
 
@@ -1663,6 +1668,7 @@ done_l23:
 **************************************************************************************/
 init_vpe1:
 
+#if 0
     # fixme: a lot of this is now redundant. each vpe init's it's own resources.
     # Initializing a vpe should ammount to setting it's lowest numberd bound tc to
     # start execution from the reset vector.
@@ -1842,6 +1848,8 @@ donevpe:
 #undef NVPES
 #undef TC
 
+#endif
+
 done_init_vpe1:
 
     jr   r31_return_addr
@@ -1874,6 +1882,7 @@ done_init_vpe1:
  * a1 = gd
  * a2 = destination address
  */
+#if 0
 	.globl	relocate_code
 	.ent	relocate_code
 	.set    at
@@ -1926,7 +1935,7 @@ relocate_code:
 
 	set_tag	0x7	
 	/* Jump to where we've relocated ourselves */
-	addi	t0, s2, in_ram - _start
+	addi	t0, s2, in_ram - lowlevel_init
 	jr	t0
 	 nop
 
@@ -1978,8 +1987,8 @@ in_ram:
 	lui	t9, %hi(board_init_r)
 	addiu	t9, t9, %lo(board_init_r)
 #if 1	/* VIOSOFT: FIXME */
-	lui	t8, %hi(_start)
-	addiu	t8, t8, %lo(_start)
+	lui	t8, %hi(lowlevel_init)
+	addiu	t8, t8, %lo(lowlevel_init)
 	sub	t9, t8
 	add	t9, s2, t9
 #endif	/* VIOSOFT */
@@ -1987,6 +1996,7 @@ in_ram:
 	 move	a1, s2
 
 	.end	relocate_code
+#endif
 
 #if 0
 	/* Exception handlers */
