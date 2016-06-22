@@ -6,6 +6,5 @@
 #
 
 obj-y	= board.o
-obj-y  += serial.o
 obj-y  += lowlevel_init.o
 

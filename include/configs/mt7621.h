@@ -6,7 +6,7 @@
 
 #ifndef _MT7621_CONFIG_H
 #define _MT7621_CONFIG_H
-
+#define DEBUG
 /*
  * System configuration
  */
@@ -35,7 +35,8 @@
 /*
  * Memory map
  */
-#define CONFIG_SYS_TEXT_BASE		0xbfc00000 /* Rom version */
+//#define CONFIG_SYS_TEXT_BASE		0xbfc00000 /* Rom version */
+#define CONFIG_SYS_TEXT_BASE		0xA0200000 /* DRAM version */
 #define CONFIG_SYS_MONITOR_BASE		CONFIG_SYS_TEXT_BASE
 
 #define CONFIG_SYS_SDRAM_BASE		0x80000000 /* Cached addr */
@@ -66,11 +67,14 @@
 #define SERIAL_CLOCK_DIVISOR 16
 
 
+//#include "../rt_mmap.h"
+// KEN:BUG  can be included here but we need the addresses... what to do ???
 #define CONFIG_SYS_NS16550_SERIAL
-#define CONFIG_SYS_NS16550_REG_SIZE	1
-#define CONFIG_SYS_NS16550_CLK		(115200 * 16)
-#define CONFIG_SYS_NS16550_COM1		0xb80003f8
-#define CONFIG_SYS_NS16550_COM2		0xbb0003f8
+#define CONFIG_SYS_NS16550_REG_SIZE	-4			/* little endian 32 bit registers, clearly we need to have -4 in reg size */
+#define CONFIG_SYS_NS16550_CLK		(50 * 1000 * 1000)	/* we have a 50 MHz base clock into the UART hardware */
+#define CONFIG_SYS_NS16550_COM1		(0xBE000000 + 0xc00)
+#define CONFIG_SYS_NS16550_COM2		(0xBE000000 + 0xd00)
+#define CONFIG_SYS_NS16550_COM3		(0xBE000000 + 0xe00)
 #define CONFIG_CONS_INDEX		1
 
 
