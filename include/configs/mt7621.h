@@ -98,21 +98,11 @@
 #define CONFIG_ENV_ADDR \
 	(CONFIG_SYS_FLASH_BASE + (4 << 20) - CONFIG_ENV_SIZE)
 
-/*
- * IDE/ATA
- */
-#define CONFIG_SYS_IDE_MAXBUS		1
-#define CONFIG_SYS_IDE_MAXDEVICE	2
-#define CONFIG_SYS_ATA_BASE_ADDR	CONFIG_SYS_ISA_IO_BASE_ADDRESS
-#define CONFIG_SYS_ATA_IDE0_OFFSET	0x01f0
-#define CONFIG_SYS_ATA_DATA_OFFSET	0
-#define CONFIG_SYS_ATA_REG_OFFSET	0
 
 /*
  * Commands
  */
 
-#define CONFIG_CMD_IDE
 #define CONFIG_SYS_LONGHELP		/* verbose help, undef to save memory */
 
 #endif /* _MALTA_CONFIG_H */
