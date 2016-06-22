@@ -29,7 +29,9 @@
 /*
  * CPU Configuration
  */
-#define CONFIG_SYS_MHZ			880	/* arbitrary value */
+// KEN: BUG: timer wrong  runs at 440 
+//#define CONFIG_SYS_MHZ			880
+#define CONFIG_SYS_MHZ			880/2
 #define CONFIG_SYS_MIPS_TIMER_FREQ	(CONFIG_SYS_MHZ * 1000000)
 
 /*
@@ -68,7 +70,7 @@
 
 
 //#include "../rt_mmap.h"
-// KEN:BUG  can be included here but we need the addresses... what to do ???
+// KEN:BUG  can not be included here but we need the addresses... what to do ???
 #define CONFIG_SYS_NS16550_SERIAL
 #define CONFIG_SYS_NS16550_REG_SIZE	-4			/* little endian 32 bit registers, clearly we need to have -4 in reg size */
 #define CONFIG_SYS_NS16550_CLK		(50 * 1000 * 1000)	/* we have a 50 MHz base clock into the UART hardware */
