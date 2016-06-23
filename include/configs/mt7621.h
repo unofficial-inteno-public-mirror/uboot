@@ -7,10 +7,27 @@
 #ifndef _MT7621_CONFIG_H
 #define _MT7621_CONFIG_H
 #define DEBUG
+
+/********************************************************************************/
+/* hmmm  crap  from old uboot/include/configs/rt2888.h */
+
+#define RALINK_REG(x)          (*((volatile u32 *)(x)))
+
+#define RT2880_REGS_BASE                        0xA0000000
+#define RT2880_SYS_CNTL_BASE                    (RALINK_SYSCTL_BASE)
+#define RT2880_RSTCTRL_REG                      (RT2880_SYS_CNTL_BASE+0x34)
+
+/********************************************************************************/
+
 /*
  * System configuration
  */
 #define CONFIG_MT7621
+
+/* net stuff */
+//#define CONFIG_RT2880_ETH
+#define MT7621_USE_GE1
+
 
 #define CONFIG_BOARD_EARLY_INIT_F
 #define CONFIG_DISPLAY_BOARDINFO
@@ -24,7 +41,6 @@
 #define CONFIG_SYS_ISA_IO_BASE_ADDRESS	0
 
 #define MT7621_ASIC_BOARD
-
 
 /*
  * CPU Configuration
@@ -90,6 +106,18 @@
 #define CONFIG_SYS_FLASH_CFI
 #define CONFIG_FLASH_CFI_DRIVER
 #define CONFIG_SYS_FLASH_USE_BUFFER_WRITE
+
+//#define CONFIG_MTK_MTD_NAND
+#define CONFIG_CMD_NAND
+
+#ifdef CONFIG_CMD_NAND
+#define CONFIG_SYS_MAX_NAND_DEVICE      1
+
+//#include "../rt_mmap.h"
+// KEN:BUG  can not be included here but we need the addresses... what to do ???
+#define RALINK_NAND_CTRL_BASE            0xBE003000
+#define CONFIG_SYS_NAND_BASE RALINK_NAND_CTRL_BASE
+#endif
 
 /*
  * Environment
