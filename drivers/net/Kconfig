@@ -174,4 +174,10 @@ config PIC32_ETH
 	  This driver implements 10/100 Mbps Ethernet and MAC layer for
 	  Microchip PIC32 microcontrollers.
 
+config RT2880_ETH
+	bool "RT2880t"
+	select PHYLIB
+	help
+		bla bla bla
+
 endif # NETDEVICES
