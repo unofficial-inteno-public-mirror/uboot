@@ -316,3 +316,8 @@ in_ram:
 	 move	ra, zero
 
 	END(relocate_code)
+
+LEAF(debug_halt)
+1:	b 1b
+	jr      ra
+	END(debug_halt)
