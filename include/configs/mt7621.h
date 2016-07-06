@@ -35,9 +35,9 @@
 
 #define CONFIG_MEMSIZE_IN_BYTES
 
-#define CONFIG_PCNET
-#define CONFIG_PCNET_79C973
-#define PCNET_HAS_PROM
+//#define CONFIG_PCNET
+//#define CONFIG_PCNET_79C973
+//#define PCNET_HAS_PROM
 
 #define CONFIG_SYS_ISA_IO_BASE_ADDRESS	0
 
@@ -101,7 +101,7 @@
  */
 #define CONFIG_SYS_NO_FLASH
 
-//#define CONFIG_MTK_MTD_NAND
+#define CONFIG_MTK_MTD_NAND
 #define CONFIG_CMD_NAND
 
 #ifdef CONFIG_CMD_NAND
@@ -110,10 +110,10 @@
 
 /* memory layout
 
-   u-boot	    0 -> 256kB
-   env		256KB -> 640KB
-   env		640kB -> 1MB
-   UBI		1MB - > 128MB
+   u-boot	    0  -> 512kB         0        0x07ffff
+   env		512KB  -> 896KB         0x80000  0x0dffff
+   env		896kB  -> 1280KB        0xe0000  0X13ffff
+   UBI		1280kB -> 128MB         0X140000
 
 */
 
@@ -121,7 +121,8 @@
 // KEN:BUG  can not be included here but we need the addresses... what to do ???
 #define RALINK_NAND_CTRL_BASE            0xBE003000
 #define CONFIG_SYS_NAND_BASE RALINK_NAND_CTRL_BASE
-#endif
+
+
 
 /*
  * Environment
@@ -135,9 +136,29 @@
 #define CONFIG_ENV_SIZE			(1024*10) /*can actually be 128kB */
 #define CONFIG_ENV_RANGE		(CONFIG_SYS_NAND_BLOCK_SIZE * 3)
 
-#define CONFIG_ENV_OFFSET               (CONFIG_SYS_NAND_BLOCK_SIZE * 2)
+#define CONFIG_ENV_OFFSET               (CONFIG_SYS_NAND_BLOCK_SIZE * 4)
 #define CONFIG_ENV_OFFSET_REDUND        (CONFIG_ENV_OFFSET + CONFIG_SYS_NAND_BLOCK_SIZE * 3)
 
+
+
+#else
+#define CONFIG_ENV_IS_NOWHERE
+#define CONFIG_ENV_SIZE			(1024*10) /*can actually be 128kB */
+#endif
+
+#define CONFIG_CMD_UBI
+#define CONFIG_RBTREE
+#define CONFIG_MTD_PARTITIONS
+#define CONFIG_CMD_MTDPARTS
+#define CONFIG_MTD_DEVICE
+#define MTDIDS_DEFAULT          "nand0=mt7621.nand"
+
+#define MTDPARTS_DEFAULT        "mtdparts=mt7621.nand:512k(uboot),"     \
+                                                "384k(env1),"           \
+                                                "384k(env2),"           \
+                                                "-(ubi)"
+#define CONFIG_CMD_UBIFS
+#define CONFIG_LZO
 /*
  * Commands
  */
