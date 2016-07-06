@@ -557,12 +557,13 @@ include/config/auto.conf: ;
 endif # $(dot-config)
 
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
-KBUILD_CFLAGS	+= -Os
+#KBUILD_CFLAGS	+= -Os
+KBUILD_CFLAGS	+= -Os -fno-schedule-insns -fno-schedule-insns2
 else
 KBUILD_CFLAGS	+= -O2
 endif
 
-KBUILD_CFLAGS += $(call cc-option,-fno-stack-protector)
+Kbuild_CFLAGS += $(call cc-option,-fno-stack-protector)
 KBUILD_CFLAGS += $(call cc-option,-fno-delete-null-pointer-checks)
 
 KBUILD_CFLAGS	+= -g

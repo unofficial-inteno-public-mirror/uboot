@@ -78,6 +78,9 @@ config NAND_ARASAN
 	  controller. This uses the hardware ECC for read and
 	  write operations.
 
+config MTK_MTD_NAND
+	bool "Support for MTK SoC NAND controller"
+
 comment "Generic NAND options"
 
 # Enhance depends when converting drivers to Kconfig which use this config
