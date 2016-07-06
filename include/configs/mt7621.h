@@ -6,7 +6,8 @@
 
 #ifndef _MT7621_CONFIG_H
 #define _MT7621_CONFIG_H
-#define DEBUG
+//#define DEBUG
+//#define TRACE32
 
 /********************************************************************************/
 /* hmmm  crap  from old uboot/include/configs/rt2888.h */
@@ -66,7 +67,7 @@
 #define CONFIG_SYS_MEMTEST_START	0x80100000
 #define CONFIG_SYS_MEMTEST_END		0x80800000
 
-#define CONFIG_SYS_MALLOC_LEN		(128 * 1024)
+#define CONFIG_SYS_MALLOC_LEN		(1024 * 1024)
 #define CONFIG_SYS_BOOTPARAMS_LEN	(128 * 1024)
 #define CONFIG_SYS_BOOTM_LEN		(64 * 1024 * 1024)
 
@@ -95,8 +96,6 @@
 #define CONFIG_SYS_NS16550_COM3		(0xBE000000 + 0xe00)
 #define CONFIG_CONS_INDEX		1
 
-
-
 /*
  * Flash configuration
  */
@@ -107,6 +106,16 @@
 
 #ifdef CONFIG_CMD_NAND
 #define CONFIG_SYS_MAX_NAND_DEVICE      1
+#define CONFIG_SYS_NAND_SELF_INIT
+
+/* memory layout
+
+   u-boot	    0 -> 256kB
+   env		256KB -> 640KB
+   env		640kB -> 1MB
+   UBI		1MB - > 128MB
+
+*/
 
 //#include "../rt_mmap.h"
 // KEN:BUG  can not be included here but we need the addresses... what to do ???
@@ -123,11 +132,11 @@
 #define CONFIG_SYS_MAX_FLASH_SECT       128
 #define CONFIG_SYS_MAX_FLASH_BANKS      1
 
-#define CONFIG_ENV_SIZE			(2*1024)
+#define CONFIG_ENV_SIZE			(1024*10) /*can actually be 128kB */
+#define CONFIG_ENV_RANGE		(CONFIG_SYS_NAND_BLOCK_SIZE * 3)
 
 #define CONFIG_ENV_OFFSET               (CONFIG_SYS_NAND_BLOCK_SIZE * 2)
-#define CONFIG_ENV_OFFSET_REDUND        (CONFIG_ENV_OFFSET + CONFIG_SYS_NAND_BLOCK_SIZE * 2)
-
+#define CONFIG_ENV_OFFSET_REDUND        (CONFIG_ENV_OFFSET + CONFIG_SYS_NAND_BLOCK_SIZE * 3)
 
 /*
  * Commands

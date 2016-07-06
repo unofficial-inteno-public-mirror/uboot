@@ -53,12 +53,11 @@
 #include "bmt.h"
 #include "partition.h"
 
-unsigned int CFG_BLOCKSIZE;
 
 static int shift_on_bbt = 0;
 extern void nand_bbt_set(struct mtd_info *mtd, int page, int flag);
 extern int nand_bbt_get(struct mtd_info *mtd, int page);
-int mtk_nand_read_oob_hw(struct mtd_info *mtd, struct nand_chip *chip, int page);
+static int mtk_nand_read_oob_hw(struct mtd_info *mtd, struct nand_chip *chip, int page);
 
 static const char * const probe_types[] = { "cmdlinepart", "ofpart", NULL };
 
@@ -101,7 +100,6 @@ static u32 g_u4ChipVer;
 bool g_bInitDone;
 static bool g_bcmdstatus;
 static u32 g_value = 0;
-static int g_page_size;
 
 BOOL g_bHwEcc = true;
 
@@ -125,22 +123,13 @@ static u8 local_oob_buf[NAND_MAX_OOBSIZE];
 
 static u8 nand_badblock_offset = 0;
 
-void nand_enable_clock(void)
-{
-    //enable_clock(MT65XX_PDN_PERI_NFI, "NAND");
-}
-
-void nand_disable_clock(void)
-{
-    //disable_clock(MT65XX_PDN_PERI_NFI, "NAND");
-}
-
+#if 0
 static struct nand_ecclayout nand_oob_16 = {
 	.eccbytes = 8,
 	.eccpos = {8, 9, 10, 11, 12, 13, 14, 15},
 	.oobfree = {{1, 6}, {0, 0}}
 };
-
+#endif
 struct nand_ecclayout nand_oob_64 = {
 	.eccbytes = 32,
 	.eccpos = {32, 33, 34, 35, 36, 37, 38, 39,
@@ -172,85 +161,6 @@ void dump_nfi(void)
 
 void dump_ecc(void)
 {
-}
-#ifndef __UBOOT__
-
-u32
-nand_virt_to_phys_add(u32 va)
-{
-	u32 pageOffset = (va & (PAGE_SIZE - 1));
-	pgd_t *pgd;
-	pmd_t *pmd;
-	pte_t *pte;
-	u32 pa;
-
-	if (virt_addr_valid(va))
-		return __virt_to_phys(va);
-
-	if (NULL == current) {
-		printk(KERN_ERR "[nand_virt_to_phys_add] ERROR ,current is NULL! \n");
-		return 0;
-	}
-
-	if (NULL == current->mm) {
-		printk(KERN_ERR "[nand_virt_to_phys_add] ERROR current->mm is NULL! tgid=0x%x, name=%s \n", current->tgid, current->comm);
-		return 0;
-	}
-
-	pgd = pgd_offset(current->mm, va);  /* what is tsk->mm */
-	if (pgd_none(*pgd) || pgd_bad(*pgd)) {
-		printk(KERN_ERR "[nand_virt_to_phys_add] ERROR, va=0x%x, pgd invalid! \n", va);
-		return 0;
-	}
-
-	pmd = pmd_offset((pud_t *)pgd, va);
-	if (pmd_none(*pmd) || pmd_bad(*pmd)) {
-		printk(KERN_ERR "[nand_virt_to_phys_add] ERROR, va=0x%x, pmd invalid! \n", va);
-		return 0;
-	}
-
-	pte = pte_offset_map(pmd, va);
-	if (pte_present(*pte)) {
-		pa = (pte_val(*pte) & (PAGE_MASK)) | pageOffset;
-		return pa;
-	}
-
-	printk(KERN_ERR "[nand_virt_to_phys_add] ERROR va=0x%x, pte invalid! \n", va);
-	return 0;
-}
-EXPORT_SYMBOL(nand_virt_to_phys_add);
-#endif
-
-bool
-get_device_info(u16 id, u32 ext_id, flashdev_info * pdevinfo)
-{
-	u32 index;
-	for (index = 0; gen_FlashTable[index].id != 0; index++) {
-		if (id == gen_FlashTable[index].id && ext_id == gen_FlashTable[index].ext_id) {
-			pdevinfo->id = gen_FlashTable[index].id;
-			pdevinfo->ext_id = gen_FlashTable[index].ext_id;
-			pdevinfo->blocksize = gen_FlashTable[index].blocksize;
-			pdevinfo->addr_cycle = gen_FlashTable[index].addr_cycle;
-			pdevinfo->iowidth = gen_FlashTable[index].iowidth;
-			pdevinfo->timmingsetting = gen_FlashTable[index].timmingsetting;
-			pdevinfo->advancedmode = gen_FlashTable[index].advancedmode;
-			pdevinfo->pagesize = gen_FlashTable[index].pagesize;
-			pdevinfo->sparesize = gen_FlashTable[index].sparesize;
-			pdevinfo->totalsize = gen_FlashTable[index].totalsize;
-			memcpy(pdevinfo->devciename, gen_FlashTable[index].devciename, sizeof(pdevinfo->devciename));
-			printk(KERN_INFO "Device found in MTK table, ID: %x, EXT_ID: %x\n", id, ext_id);
-
-			goto find;
-		}
-	}
-
-find:
-	if (0 == pdevinfo->id) {
-		printk(KERN_INFO "Device not found, ID: %x\n", id);
-		return false;
-	} else {
-		return true;
-	}
 }
 
 static void
@@ -338,7 +248,8 @@ mtk_nand_check_bch_error(struct mtd_info *mtd, u8 * pDataBuf, u32 u4SecIndex, u3
 {
 	bool bRet = true;
 	u16 u2SectorDoneMask = 1 << u4SecIndex;
-	u32 u4ErrorNumDebug, i, u4ErrNum;
+//	u32 u4ErrorNumDebug, i, u4ErrNum;
+	u32 i, u4ErrNum;
 	u32 timeout = 0xFFFF;
 	// int el;
 	u32 au4ErrBitLoc[6];
@@ -353,7 +264,7 @@ mtk_nand_check_bch_error(struct mtd_info *mtd, u8 * pDataBuf, u32 u4SecIndex, u3
 	}
 	/* We will manually correct the error bits in the last sector, not all the sectors of the page! */
 	memset(au4ErrBitLoc, 0x0, sizeof(au4ErrBitLoc));
-	u4ErrorNumDebug = DRV_Reg32(ECC_DECENUM_REG32);
+	//u4ErrorNumDebug = DRV_Reg32(ECC_DECENUM_REG32);
 	u4ErrNum = DRV_Reg32(ECC_DECENUM_REG32) >> (u4SecIndex << 2);
 	u4ErrNum &= 0xF;
 
@@ -1055,9 +966,9 @@ write_next_on_fail(struct mtd_info *mtd, char *write_buf, int page, int * to_blk
 				if (chip->oob_poi[j] != (unsigned char)0xff)
 					break;
 			if (j < mtd->oobsize)	{
-				mtk_nand_exec_read_page(mtd, (first_page+i), mtd->writesize, buf, oob);
+				mtk_nand_exec_read_page(mtd, (first_page+i), mtd->writesize, (u8 *)buf, (u8 *)oob);
 				memset(oob, 0xff, mtd->oobsize);
-				if (mtk_nand_exec_write_page(mtd, to_page + i, mtd->writesize, (u8 *)buf, oob) != 0) {
+				if (mtk_nand_exec_write_page(mtd, to_page + i, mtd->writesize, (u8 *)buf, (u8 *)oob) != 0) {
 					int ret, new_blk = 0;
 					nand_bbt_set(mtd, to_page, 0x3);
 					ret =  write_next_on_fail(mtd, buf, to_page + i, &new_blk);
@@ -1155,6 +1066,8 @@ mtk_nand_command_bp(struct mtd_info *mtd, unsigned int command, int column, int 
 {
 	struct nand_chip *nand = mtd->priv;
 
+//	MSG(INIT, "%s: command 0x%02x col %d page %x \n", __func__, command, column, page_addr);
+
 	switch (command) {
 	case NAND_CMD_SEQIN:
 		memset(g_kCMD.au1OOB, 0xFF, sizeof(g_kCMD.au1OOB));
@@ -1229,7 +1142,8 @@ mtk_nand_command_bp(struct mtd_info *mtd, unsigned int command, int column, int 
 		mb();
 		mtk_nand_set_mode(CNFG_OP_SRD);
 		(void)mtk_nand_set_command(NAND_CMD_READID);
-		(void)mtk_nand_set_address(0, 0, 1, 0);
+//		(void)mtk_nand_set_address(0, 0, 1, 0);
+		(void)mtk_nand_set_address(column, page_addr, 1, 0);
 		DRV_WriteReg16(NFI_CON_REG16, CON_NFI_SRD);
 		while (DRV_Reg32(NFI_STA_REG32) & STA_DATAR_STATE)
 			;
@@ -1244,47 +1158,10 @@ mtk_nand_command_bp(struct mtd_info *mtd, unsigned int command, int column, int 
 static void
 mtk_nand_select_chip(struct mtd_info *mtd, int chip)
 {
-	if ((chip == -1) && (false == g_bInitDone)) {
-		struct nand_chip *nand = mtd->priv;
-		struct mtk_nand_host *host = nand->priv;
-		struct mtk_nand_host_hw *hw = host->hw;
-		u32 spare_per_sector = mtd->oobsize / (mtd->writesize / 512);
-		u32 ecc_bit = 4;
-		u32 spare_bit = PAGEFMT_SPARE_16;
+//	MSG(INIT, "%s:  chip = %d \n", __func__, chip);
 
-		if (spare_per_sector >= 28) {
-			spare_bit = PAGEFMT_SPARE_28;
-			ecc_bit = 12;
-			spare_per_sector = 28;
-		} else if (spare_per_sector >= 27) {
-			spare_bit = PAGEFMT_SPARE_27;
-			ecc_bit = 8;
-			spare_per_sector = 27;
-		} else if (spare_per_sector >= 26) {
-			spare_bit = PAGEFMT_SPARE_26;
-			ecc_bit = 8;
-			spare_per_sector = 26;
-		} else if (spare_per_sector >= 16) {
-			spare_bit = PAGEFMT_SPARE_16;
-			ecc_bit = 4;
-			spare_per_sector = 16;
-		} else {
-			MSG(INIT, "[NAND]: NFI not support oobsize: %x\n", spare_per_sector);
-			ASSERT(0);
-		}
-		mtd->oobsize = spare_per_sector*(mtd->writesize/512);
-		MSG(INIT, "[NAND]select ecc bit:%d, sparesize :%d spare_per_sector=%d\n",ecc_bit,mtd->oobsize,spare_per_sector);
-		/* Setup PageFormat */
-		if (4096 == mtd->writesize) {
-			NFI_SET_REG16(NFI_PAGEFMT_REG16, (spare_bit << PAGEFMT_SPARE_SHIFT) | PAGEFMT_4K);
-			nand->cmdfunc = mtk_nand_command_bp;
-		} else if (2048 == mtd->writesize) {
-			NFI_SET_REG16(NFI_PAGEFMT_REG16, (spare_bit << PAGEFMT_SPARE_SHIFT) | PAGEFMT_2K);
-			nand->cmdfunc = mtk_nand_command_bp;
-		}
-		ECC_Config(hw,ecc_bit);
-		g_bInitDone = true;
-	}
+
+	/*KEN chip set ti -1 means deselect chip */
 	switch (chip) {
 	case -1:
 		break;
@@ -1386,7 +1263,7 @@ mtk_nand_write_page_hwecc(struct mtd_info *mtd, struct nand_chip *chip, const ui
 	return 0;
 }
 
-static int
+int
 mtk_nand_read_page_hwecc(struct mtd_info *mtd, struct nand_chip *chip, uint8_t * buf, int oob_required, int page)
 {
 	struct NAND_CMD *pkCMD = &g_kCMD;
@@ -1401,6 +1278,7 @@ mtk_nand_read_page_hwecc(struct mtd_info *mtd, struct nand_chip *chip, uint8_t *
 	return 0;
 }
 
+#if 0
 static int
 mtk_nand_read_page(struct mtd_info *mtd, struct nand_chip *chip, u8 * buf, int page)
 {
@@ -1429,7 +1307,7 @@ mtk_nand_read_page(struct mtd_info *mtd, struct nand_chip *chip, u8 * buf, int p
 		return -EIO;
 #endif
 }
-
+#endif
 int
 mtk_nand_erase_hw(struct mtd_info *mtd, int page)
 {
@@ -1439,8 +1317,8 @@ mtk_nand_erase_hw(struct mtd_info *mtd, int page)
 
 	return chip->waitfunc(mtd, chip);
 }
-
-static int
+#if 0
+int
 mtk_nand_erase(struct mtd_info *mtd, int page)
 {
 	// get mapping 
@@ -1494,7 +1372,7 @@ mtk_nand_erase(struct mtd_info *mtd, int page)
 
 	return 0;
 }
-
+#endif
 static int
 mtk_nand_read_oob_raw(struct mtd_info *mtd, uint8_t * buf, int page_addr, int len)
 {
@@ -1643,7 +1521,6 @@ mtk_nand_write_oob_hw(struct mtd_info *mtd, struct nand_chip *chip, int page)
 	int i, iter;
 	int sec_num = 1<<(chip->page_shift-9);
 	int spare_per_sector = mtd->oobsize/sec_num;
-
 	memcpy(local_oob_buf, chip->oob_poi, mtd->oobsize);
 
 	// copy ecc data
@@ -1723,7 +1600,6 @@ mtk_nand_block_markbad_hw(struct mtd_info *mtd, loff_t offset)
 	int block = (int)offset >> chip->phys_erase_shift;
 	int page = block * (1 << (chip->phys_erase_shift - chip->page_shift));
 	u8 buf[8];
-
 	memset(buf, 0xFF, 8);
 	buf[0] = 0;
 	return  mtk_nand_write_oob_raw(mtd, buf, page, 8);
@@ -1758,7 +1634,7 @@ mtk_nand_block_markbad(struct mtd_info *mtd, loff_t offset)
 	return ret;
 }
 
-int
+static int
 mtk_nand_read_oob_hw(struct mtd_info *mtd, struct nand_chip *chip, int page)
 {
 	int i;
@@ -1766,7 +1642,6 @@ mtk_nand_read_oob_hw(struct mtd_info *mtd, struct nand_chip *chip, int page)
 
 	int sec_num = 1<<(chip->page_shift-9);
 	int spare_per_sector = mtd->oobsize/sec_num;
-
 	if (mtk_nand_read_oob_raw(mtd, chip->oob_poi, page, mtd->oobsize)) {
 		printk(KERN_ERR "[%s]mtk_nand_read_oob_raw return failed\n", __FUNCTION__);
 		return -EIO;
@@ -1789,7 +1664,6 @@ mtk_nand_read_oob_hw(struct mtd_info *mtd, struct nand_chip *chip, int page)
 	for (i = 0; i < sec_num; i++) {
 		memcpy(&chip->oob_poi[i * OOB_AVAI_PER_SECTOR], &local_oob_buf[i *  spare_per_sector], OOB_AVAI_PER_SECTOR);
 	}
-
 	return 0;
 }
 
@@ -1840,6 +1714,7 @@ mtk_nand_block_bad_hw(struct mtd_info *mtd, loff_t ofs)
 	return 0;
 }
 
+#if 0
 static int
 mtk_nand_block_bad(struct mtd_info *mtd, loff_t ofs, int getchip)
 {
@@ -1888,7 +1763,7 @@ mtk_nand_block_bad(struct mtd_info *mtd, loff_t ofs, int getchip)
 
 	return ret;
 }
-
+#endif
 #ifdef CONFIG_MTD_NAND_VERIFY_WRITE
 char gacBuf[4096 + 288];
 
@@ -1930,41 +1805,80 @@ mtk_nand_verify_buf(struct mtd_info *mtd, const uint8_t * buf, int len)
 }
 #endif
 
-static void
-mtk_nand_init_hw(struct mtk_nand_host *host) {
-	struct mtk_nand_host_hw *hw = host->hw;
+static void mtk_nand_pin_setup( void )
+{
 	u32 data;
-
 	data = DRV_Reg32(RALINK_SYSCTL_BASE+0x60);
 	data &= ~((0x3<<18)|(0x3<<16));
 	data |= ((0x2<<18) |(0x2<<16));
 	DRV_WriteReg32(RALINK_SYSCTL_BASE+0x60, data);
+}
 
-	MSG(INIT, "Enable NFI Clock\n");
-	nand_enable_clock();
-
-	g_bInitDone = false;
-	g_kCMD.u4OOBRowAddr = (u32) - 1;
-
+static void mtk_nand_clk_setup( struct mtk_nand_host_hw *hw )
+{
 	/* Set default NFI access timing control */
 	DRV_WriteReg32(NFI_ACCCON_REG32, hw->nfi_access_timing);
 	DRV_WriteReg16(NFI_CNFG_REG16, 0);
 	DRV_WriteReg16(NFI_PAGEFMT_REG16, 0);
 
-	/* Reset the state machine and data FIFO, because flushing FIFO */
-	(void)mtk_nand_reset();
+	/* Set burst for read/write to 4, data bus set to pull down */
+	NFI_SET_REG16(NFI_IOCON_REG16, 0x47);
+}
+
+static void
+mtk_nand_ecc_init(struct mtk_nand_host *host) {
+	struct mtk_nand_host_hw *hw = host->hw;
+	struct mtd_info *mtd   = host->mtd;
+	u32 spare_per_sector = mtd->oobsize / (mtd->writesize / 512);
+
+	u32 ecc_bit = 4;
+	u32 spare_bit = PAGEFMT_SPARE_16;
+
+	MSG(INIT, "%s: mtd->oobsize %d mtd->writesize %d\n",__func__,mtd->oobsize, mtd->writesize);
+
+	g_kCMD.u4OOBRowAddr = (u32) - 1;   /*KEN: hmm and this is done why ? */
 
 	/* Set the ECC engine */
 	if (hw->nand_ecc_mode == NAND_ECC_HW) {
 		MSG(INIT, "%s : Use HW ECC\n", MODULE_NAME);
-		if (g_bHwEcc)
+
+		if (g_bHwEcc)/* KEN: we already have a way to see if hwecc is used why use g_bHwEcc also ?*/
 			NFI_SET_REG32(NFI_CNFG_REG16, CNFG_HW_ECC_EN);
-		ECC_Config(host->hw,4);
-		mtk_nand_configure_fdm(8);
+
+		if (spare_per_sector >= 28) {
+			spare_bit = PAGEFMT_SPARE_28;
+			ecc_bit = 12;
+			spare_per_sector = 28;
+		} else if (spare_per_sector >= 27) {
+			spare_bit = PAGEFMT_SPARE_27;
+			ecc_bit = 8;
+			spare_per_sector = 27;
+		} else if (spare_per_sector >= 26) {
+			spare_bit = PAGEFMT_SPARE_26;
+			ecc_bit = 8;
+			spare_per_sector = 26;
+		} else if (spare_per_sector >= 16) {
+			spare_bit = PAGEFMT_SPARE_16;
+			ecc_bit = 4;
+			spare_per_sector = 16;
+		} else {
+			MSG(INIT, "[NAND]: NFI not support oobsize: %x\n", spare_per_sector);
+			ASSERT(0);
+		}
+
+		MSG(INIT, "[NAND]select ecc bit:%d, sparesize :%d spare_per_sector=%d\n",ecc_bit,mtd->oobsize,spare_per_sector);
+
+		/* Setup PageFormat */
+		if (4096 == mtd->writesize) {
+			NFI_SET_REG16(NFI_PAGEFMT_REG16, (spare_bit << PAGEFMT_SPARE_SHIFT) | PAGEFMT_4K);
+		} else if (2048 == mtd->writesize) {
+			NFI_SET_REG16(NFI_PAGEFMT_REG16, (spare_bit << PAGEFMT_SPARE_SHIFT) | PAGEFMT_2K);
+		}
+
+		ECC_Config(hw, ecc_bit);
+		mtk_nand_configure_fdm(8);   /*ken: ok where is the 8 comming from ??? */
 		mtk_nand_configure_lock();
 	}
-
-	NFI_SET_REG16(NFI_IOCON_REG16, 0x47);
 }
 
 static int mtk_nand_dev_ready(struct mtd_info *mtd)
@@ -1979,7 +1893,7 @@ const u8 oob_signature[] = "mtknand";
 static u8 *fact_bbt = 0;
 static u32 bbt_size = 0;
 
-static int
+int
 read_fact_bbt(struct mtd_info *mtd, unsigned int page)
 {
 	struct nand_chip *chip = mtd->priv;
@@ -2009,7 +1923,7 @@ read_fact_bbt(struct mtd_info *mtd, unsigned int page)
 	return -1;
 }
 
-static int
+int
 load_fact_bbt(struct mtd_info *mtd)
 {
 	struct nand_chip *chip = mtd->priv;
@@ -2017,7 +1931,10 @@ load_fact_bbt(struct mtd_info *mtd)
 	u32 total_block;
 
 	total_block = 1 << (chip->chip_shift - chip->phys_erase_shift);
+
 	bbt_size = total_block >> 2;
+
+	printk("total blocks =%d bbt_size = %d \n",total_block , bbt_size);
 
 	if ((!fact_bbt) && (bbt_size))
 		fact_bbt = (u8 *)kmalloc(bbt_size, GFP_KERNEL);
@@ -2037,8 +1954,7 @@ load_fact_bbt(struct mtd_info *mtd)
 	return -1;
 }
 
-static int
-mtk_nand_probe(void)
+int mtk_nand_probe(void)
 {
 #ifndef __UBOOT__
 	struct mtd_part_parser_data ppdata;
@@ -2046,20 +1962,8 @@ mtk_nand_probe(void)
 	struct mtk_nand_host_hw *hw;
 	struct mtd_info *mtd;
 	struct nand_chip *nand_chip;
-	u8 ext_id1, ext_id2, ext_id3;
 	int err = 0;
-	int id;
-	u32 ext_id;
-	int i;
-	u32 data;
 
-	data = DRV_Reg32(RALINK_SYSCTL_BASE+0x60);
-	data &= ~((0x3<<18)|(0x3<<16));
-	data |= ((0x2<<18) |(0x2<<16));
-	DRV_WriteReg32(RALINK_SYSCTL_BASE+0x60, data);
-
-	hw = &mt7621_nand_hw,
-		//BUG_ON(!hw);
 	/* Allocate memory for the device structure (and zero it) */
 	host = kzalloc(sizeof(struct mtk_nand_host), GFP_KERNEL);
 	if (!host) {
@@ -2069,212 +1973,85 @@ mtk_nand_probe(void)
 
 	/* Allocate memory for 16 byte aligned buffer */
 	local_buffer_16_align = local_buffer + 16 - ((u32) local_buffer % 16);
-	printk(KERN_INFO "Allocate 16 byte aligned buffer: %p\n", local_buffer_16_align);
+
+	hw = &mt7621_nand_hw;
 	host->hw = hw;
 
-	/* init mtd data structure */
+	/* setup soc for using nand */
+	mtk_nand_pin_setup();
+	mtk_nand_clk_setup(hw);
+	mtk_nand_reset();
+
+	/* init pointer aliases */
 	nand_chip = &host->nand_chip;
 	nand_chip->priv = host;     /* link the private data structures */
+	host->mtd = &nand_info[0];
+	mtd = host->mtd;
 
-	mtd = &host->mtd;
+	/* setup core mtd fucntions for identification of chip to work */
+
 	mtd->priv = nand_chip;
 	mtd->owner = THIS_MODULE;
 	mtd->name  = "MT7621-NAND";
 
+	nand_chip->select_chip = mtk_nand_select_chip;
+	nand_chip->cmdfunc = mtk_nand_command_bp;
+	nand_chip->read_byte = mtk_nand_read_byte;
+
+	if (nand_scan_ident(mtd, 1, NULL)) {
+		MSG(INIT, "nand_scan_ident: failed \r\n");
+		err = -ENXIO;
+		goto out;
+	}
+
+	/* ecc stuff */
+
 	hw->nand_ecc_mode = NAND_ECC_HW;
 
-	/* Set address of NAND IO lines */
-	nand_chip->IO_ADDR_R = (void __iomem *)NFI_DATAR_REG32;
-	nand_chip->IO_ADDR_W = (void __iomem *)NFI_DATAW_REG32;
-	nand_chip->chip_delay = 20; /* 20us command delay time */
 	nand_chip->ecc.mode = hw->nand_ecc_mode;    /* enable ECC */
-	nand_chip->ecc.strength = 1;
-	nand_chip->read_byte = mtk_nand_read_byte;
-	nand_chip->read_buf = mtk_nand_read_buf;
-	nand_chip->write_buf = mtk_nand_write_buf;
-#ifdef CONFIG_MTD_NAND_VERIFY_WRITE
-	nand_chip->verify_buf = mtk_nand_verify_buf;
-#endif
-	nand_chip->select_chip = mtk_nand_select_chip;
-	nand_chip->dev_ready = mtk_nand_dev_ready;
-	nand_chip->cmdfunc = mtk_nand_command_bp;
+	nand_chip->ecc.strength = 1; // KEN ??????? sholde be 8 or ??
+
 	nand_chip->ecc.read_page = mtk_nand_read_page_hwecc;
 	nand_chip->ecc.write_page = mtk_nand_write_page_hwecc;
+
+	nand_chip->ecc.read_oob = mtk_nand_read_oob;
+	nand_chip->ecc.write_oob = mtk_nand_write_oob;
 
 	nand_chip->ecc.layout = &nand_oob_64;
 	nand_chip->ecc.size = hw->nand_ecc_size;    //2048
 	nand_chip->ecc.bytes = hw->nand_ecc_bytes;  //32
 
+	mtk_nand_ecc_init(host);
+
+
+	nand_chip->read_buf = mtk_nand_read_buf;
+ //	nand_chip->write_buf = mtk_nand_write_buf;
+#ifdef CONFIG_MTD_NAND_VERIFY_WRITE
+	nand_chip->verify_buf = mtk_nand_verify_buf;
+#endif
+	nand_chip->dev_ready = mtk_nand_dev_ready;
 	// For BMT, we need to revise driver architecture
 	nand_chip->write_page = mtk_nand_write_page;
-	nand_chip->ecc.write_oob = mtk_nand_write_oob;
 	nand_chip->block_markbad = mtk_nand_block_markbad;   // need to add nand_get_device()/nand_release_device().
-	//	nand_chip->erase = mtk_nand_erase;	
-	//    nand_chip->read_page = mtk_nand_read_page;
-	nand_chip->ecc.read_oob = mtk_nand_read_oob;
-	nand_chip->block_bad = mtk_nand_block_bad;
+	//nand_chip->erase = mtk_nand_erase;
+	//nand_chip->read_page = mtk_nand_read_page;
 
-	//Qwert:Add for Uboot
-	mtk_nand_init_hw(host);
-	/* Select the device */
-	nand_chip->select_chip(mtd, NFI_DEFAULT_CS);
-
-	/*
-	* Reset the chip, required by some chips (e.g. Micron MT29FxGxxxxx)
-	* after power-up
-	*/
-	nand_chip->cmdfunc(mtd, NAND_CMD_RESET, -1, -1);
-
-	memset(&devinfo, 0 , sizeof(flashdev_info));
-
-	/* Send the command for reading device ID */
-
-	nand_chip->cmdfunc(mtd, NAND_CMD_READID, 0x00, -1);
-
-	/* Read manufacturer and device IDs */
-	manu_id = nand_chip->read_byte(mtd);
-	dev_id = nand_chip->read_byte(mtd);
-	id = dev_id | (manu_id << 8);
-	        ext_id1 = nand_chip->read_byte(mtd);
-		    ext_id2 = nand_chip->read_byte(mtd);
-		        ext_id3 = nand_chip->read_byte(mtd);
-			    ext_id = ext_id1 << 16 | ext_id2 << 8 | ext_id3;
-	if (!get_device_info(id, ext_id, &devinfo)) {
-		u32 chip_mode = RALINK_REG(RALINK_SYSCTL_BASE+0x010)&0x0F;
-		MSG(INIT, "Not Support this Device! \r\n");
-		memset(&devinfo, 0 , sizeof(flashdev_info));
-		MSG(INIT, "chip_mode=%08X\n",chip_mode);
-
-		/* apply bootstrap first */
-		devinfo.addr_cycle = 5;
-		devinfo.iowidth = 8;
-
-		switch (chip_mode) {
-		case 10:
-			devinfo.pagesize = 2048;
-			devinfo.sparesize = 128;
-			devinfo.totalsize = 128;
-			devinfo.blocksize = 128;
-			break;
-		case 11:
-			devinfo.pagesize = 4096;
-			devinfo.sparesize = 128;
-			devinfo.totalsize = 1024;
-			devinfo.blocksize = 256;
-			break;
-		case 12:
-			devinfo.pagesize = 4096;
-			devinfo.sparesize = 224;
-			devinfo.totalsize = 2048;
-			devinfo.blocksize = 512;
-			break;
-		default:
-		case 1:
-			devinfo.pagesize = 2048;
-			devinfo.sparesize = 64;
-			devinfo.totalsize = 128;
-			devinfo.blocksize = 128;
-			break;
-		}
-
-		devinfo.timmingsetting = NFI_DEFAULT_ACCESS_TIMING;
-		devinfo.devciename[0] = 'U';
-		devinfo.advancedmode = 0;
-	}
-	mtd->writesize = devinfo.pagesize;
-	mtd->erasesize = (devinfo.blocksize<<10);
-	mtd->oobsize = devinfo.sparesize;
-
-	nand_chip->chipsize = (devinfo.totalsize<<20);
-	nand_chip->page_shift = ffs(mtd->writesize) - 1;
-	nand_chip->pagemask = (nand_chip->chipsize >> nand_chip->page_shift) - 1;
-	nand_chip->phys_erase_shift = ffs(mtd->erasesize) - 1;
-	nand_chip->chip_shift = ffs(nand_chip->chipsize) - 1;//0x1C;//ffs(nand_chip->chipsize) - 1;
-	nand_chip->oob_poi = nand_chip->buffers->databuf + mtd->writesize;
-	nand_chip->badblockpos = 0;
-
-	if (devinfo.pagesize == 4096)
-		nand_chip->ecc.layout = &nand_oob_128;
-	else if (devinfo.pagesize == 2048)
-		nand_chip->ecc.layout = &nand_oob_64;
-	else if (devinfo.pagesize == 512)
-		nand_chip->ecc.layout = &nand_oob_16;
-
-	nand_chip->ecc.layout->eccbytes = devinfo.sparesize-OOB_AVAI_PER_SECTOR*(devinfo.pagesize/NAND_SECTOR_SIZE);
-	for (i = 0; i < nand_chip->ecc.layout->eccbytes; i++)
-		nand_chip->ecc.layout->eccpos[i]=OOB_AVAI_PER_SECTOR*(devinfo.pagesize/NAND_SECTOR_SIZE)+i;
-
-	MSG(INIT, "Support this Device in MTK table! %x \r\n", id);
-	hw->nfi_bus_width = devinfo.iowidth;
-	DRV_WriteReg32(NFI_ACCCON_REG32, devinfo.timmingsetting);
-
-	/* 16-bit bus width */
-	if (hw->nfi_bus_width == 16) {
-		MSG(INIT, "%s : Set the 16-bit I/O settings!\n", MODULE_NAME);
-		nand_chip->options |= NAND_BUSWIDTH_16;
-	}
-	mtd->oobsize = devinfo.sparesize;
-	hw->nfi_cs_num = 1;
-
-	/* Scan to find existance of the device */
-	if (nand_scan(mtd, hw->nfi_cs_num)) {
-		MSG(INIT, "%s : nand_scan fail.\n", MODULE_NAME);
+	if (nand_scan_tail(mtd)) {
 		err = -ENXIO;
 		goto out;
 	}
-
-	g_page_size = mtd->writesize;
-//KEN	platform_set_drvdata(pdev, host);
-	if (hw->nfi_bus_width == 16) {
-		NFI_SET_REG16(NFI_PAGEFMT_REG16, PAGEFMT_DBYTE_EN);
-	}
-
-	nand_chip->select_chip(mtd, 0);
-#if defined(MTK_NAND_BMT)  
-	nand_chip->chipsize -= (BMT_POOL_SIZE) << nand_chip->phys_erase_shift;
-#endif
-	mtd->size = nand_chip->chipsize;
-
-	CFG_BLOCKSIZE = mtd->erasesize;
-
-#if defined(MTK_NAND_BMT)
-	if (!g_bmt) {
-		if (!(g_bmt = init_bmt(nand_chip, BMT_POOL_SIZE))) {
-			MSG(INIT, "Error: init bmt failed\n");
-			return 0;
-		}
-	}
-#endif
-
-#ifndef __UBOOT__
-	ppdata.of_node = pdev->dev.of_node;
-	err = mtd_device_parse_register(mtd, probe_types, &ppdata,
-					NULL, 0);
-#else
-	err=0;
-#endif
-	if (!err) {
-		MSG(INIT, "[mtk_nand] probe successfully!\n");
-		nand_disable_clock();
-		shift_on_bbt = 1;
-		if (load_fact_bbt(mtd) == 0) {
-			int i;
-			for (i = 0; i < 0x100; i++)
-				nand_chip->bbt[i] |= fact_bbt[i];
-		}
-
-		return err;
-	}
+	err = nand_register(0);
+	return err;
 
 out:
 	MSG(INIT, "[NFI] mtk_nand_probe fail, err = %d!\n", err);
 //KEN	nand_release(mtd);
 //KEN	platform_set_drvdata(pdev, NULL);
 	kfree(host);
-	nand_disable_clock();
 	return err;
 }
 
+#ifndef __UBOOT__
 static int
 mtk_nand_remove(struct platform_device *pdev)
 {
@@ -2283,11 +2060,9 @@ mtk_nand_remove(struct platform_device *pdev)
 
 //	nand_release(mtd);
 	kfree(host);
-	nand_disable_clock();
-
 	return 0;
 }
-#ifndef __UBOOT__
+
 
 static const struct of_device_id mt7621_nand_match[] = {
 	{ .compatible = "mtk,mt7621-nand" },
@@ -2328,9 +2103,10 @@ MODULE_LICENSE("GPL");
  */
 
 
-int board_nand_init(struct nand_chip *chip)
+//int board_nand_init(struct nand_chip *chip)
+void  board_nand_init( void )
 {
-	printf("need to implement board_nand_init\n" );
+//	mtk_nand_probe(struct nand_chip *chip);
 	mtk_nand_probe();
-	
+
 }

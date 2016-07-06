@@ -358,7 +358,7 @@
 struct mtk_nand_host 
 {
 	struct nand_chip		nand_chip;
-	struct mtd_info			mtd;
+	struct mtd_info			*mtd;
 	struct mtk_nand_host_hw	*hw;
 };
 
@@ -385,7 +385,7 @@ struct nand_ecclayout {
 	struct nand_oobfree oobfree[MTD_MAX_OOBFREE_ENTRIES];
 };
 */
-#define __DEBUG_NAND		1			/* Debug information on/off */
+//#define __DEBUG_NAND		1			/* Debug information on/off */
 
 /* Debug message event */
 #define DBG_EVT_NONE		0x00000000	/* No event */

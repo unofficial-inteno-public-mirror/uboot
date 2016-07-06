@@ -992,9 +992,9 @@ void board_init_r(gd_t *new_gd, ulong dest_addr)
 	for (i = 0; i < ARRAY_SIZE(init_sequence_r); i++)
 		init_sequence_r[i] += gd->reloc_off;
 #endif
-
+#ifdef TRACE32
 	debug_halt(CONFIG_SYS_TEXT_BASE - gd->relocaddr);
-
+#endif
 	if (initcall_run_list(init_sequence_r))
 		hang();
 
