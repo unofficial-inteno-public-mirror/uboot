@@ -2840,7 +2840,7 @@ static int rt2880_eth_recv(struct eth_device* dev)
 		else {
 			// KEN: 
 			//NetReceive((void *)KSEG1ADDR(NetRxPackets[rx_dma_owner_idx0]), length );
-			net_process_received_packet(net_rx_packets[rx_dma_owner_idx0], length );
+			net_process_received_packet( (void *)KSEG1ADDR(net_rx_packets[rx_dma_owner_idx0]), length );
 		}
 
 #if  defined (RX_SCATTER_GATTER_DMA)
