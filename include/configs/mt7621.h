@@ -7,6 +7,9 @@
 #ifndef _MT7621_CONFIG_H
 #define _MT7621_CONFIG_H
 //#define DEBUG
+//#define CONFIG_MTD_DEBUG
+//#define CONFIG_MTD_DEBUG_VERBOSE 1
+
 #define TRACE32
 
 /********************************************************************************/
@@ -137,6 +140,9 @@
 /*
  * Environment in UBI
  */
+#define CONFIG_MTD_UBI_BEB_LIMIT 30 /* this is 30 blocks per 1024 -> 3% */
+#define CONFIG_MTD_UBI_FASTMAP
+
 #define CONFIG_ENV_IS_IN_UBI
 #define CONFIG_ENV_UBI_PART "ubi"
 #define CONFIG_ENV_UBI_VOLUME "env1"
