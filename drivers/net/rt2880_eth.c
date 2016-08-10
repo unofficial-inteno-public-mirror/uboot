@@ -3,12 +3,14 @@
 
 #if defined(CONFIG_RT2880_ETH)
 
+#include <dm.h>
 #include <malloc.h>
 #include <net.h>
+#include <netdev.h>
 #include <asm/addrspace.h>
 #include <rt_mmap.h>
 
-#undef DEBUG
+//#undef DEBUG
 
 /* ====================================== */
 //GDMA1 uni-cast frames destination port
@@ -490,7 +492,7 @@ volatile uchar      *PktBuf;
 volatile uchar	Pkt_Buf_Pool[(PKTBUFSRX+2) * PKTSIZE_ALIGN + PKTALIGN];
 
 static int   rt2880_eth_init(struct eth_device* dev, bd_t* bis);
-static int   rt2880_eth_send(struct eth_device* dev, volatile void *packet, int length);
+static int   rt2880_eth_send(struct eth_device* dev, void *packet, int length);
 static int   rt2880_eth_recv(struct eth_device* dev);
 void  rt2880_eth_halt(struct eth_device* dev);
 
@@ -523,7 +525,6 @@ volatile uchar	*PKT_HEADER_Buf;// = (uchar *)CFG_EMBEDED_SRAM_SDP0_BUF_START;
 static volatile uchar	PKT_HEADER_Buf_Pool[(PKTBUFSRX * PKTSIZE_ALIGN) + PKTALIGN];
 extern  uchar	*net_tx_packet;	/* THE transmit packet			*/
 extern volatile uchar	*PktBuf;
-extern volatile uchar	Pkt_Buf_Pool[];
 
 
 #define PIODIR_R  (RALINK_PIO_BASE + 0X24)
@@ -648,8 +649,7 @@ int rt2880_eth_initialize(bd_t *bis)
 {
 	struct	eth_device* 	dev;
 	int	i;
-	u32	regValue;
-
+	
 	if (!(dev = (struct eth_device *) malloc (sizeof *dev))) {
 		printf("Failed to allocate memory\n");
 		return 0;
@@ -657,7 +657,7 @@ int rt2880_eth_initialize(bd_t *bis)
 
 	memset(dev, 0, sizeof(*dev));
 
-	sprintf(dev->name, "Eth0 (10/100-M)");
+	sprintf(dev->name, "eth0-7621-gig");
 
 	dev->iobase = RALINK_FRAME_ENGINE_BASE;
 	dev->init   = rt2880_eth_init;
@@ -693,13 +693,13 @@ int rt2880_eth_initialize(bd_t *bis)
 	rt2880_free_buf_entry_enqueue(&rt2880_free_buf_list,&rt2880_free_buf[0]);
 
 #ifdef DEBUG
-	printf("\n rt2880_free_buf[0].pbuf = 0x%08X \n",rt2880_free_buf[0].pbuf);
+	printf("\n rt2880_free_buf[0].pbuf = %p \n",rt2880_free_buf[0].pbuf);
 #endif
 	for (i = 1; i < PKTBUFSRX; i++) {
 		rt2880_free_buf[i].pbuf = rt2880_free_buf[0].pbuf + (i)*PKTSIZE_ALIGN;
 		rt2880_free_buf[i].next = NULL;
 #ifdef DEBUG
-		printf("\n rt2880_free_buf[%d].pbuf = 0x%08X\n",i,rt2880_free_buf[i].pbuf);
+		printf("\n rt2880_free_buf[%d].pbuf = %p\n",i,rt2880_free_buf[i].pbuf);
 #endif
 		rt2880_free_buf_entry_enqueue(&rt2880_free_buf_list,&rt2880_free_buf[i]);
 	}
@@ -708,17 +708,17 @@ int rt2880_eth_initialize(bd_t *bis)
 	{
 		rt2880_free_buf[i].tx_idx = NUM_TX_DESC;
 #ifdef DEBUG
-		printf("\n rt2880_free_buf[%d] = 0x%08X,rt2880_free_buf[%d].next=0x%08X \n",i,&rt2880_free_buf[i],i,rt2880_free_buf[i].next);
+		printf("\n rt2880_free_buf[%d] = %p,rt2880_free_buf[%d].next=%p \n",i,&rt2880_free_buf[i],i,rt2880_free_buf[i].next);
 #endif
 	}
-		
-	
+
+#if 0
 	//set clock resolution
 	extern unsigned long mips_bus_feq;
 	regValue = le32_to_cpu(*(volatile u_long *)(RALINK_FRAME_ENGINE_BASE + 0x0008));
 	regValue |=  ((mips_bus_feq/1000000) << 8);
 	*((volatile u_long *)(RALINK_FRAME_ENGINE_BASE + 0x0008)) = cpu_to_le32(regValue);
-	
+#endif
 	return 1;
 }
 
@@ -987,7 +987,7 @@ void LANWANPartition(void)
 #endif
 }
 
-#if defined (P5_RGMII_TO_MAC_MODE) || defined (MAC_TO_VITESSE_MODE) || defined (MAC_TO_MT7530_MODE)
+#if defined (P5_RGMII_TO_MAC_MODE) || (defined (MAC_TO_VITESSE_MODE) && defined (MAC_TO_MT7530_MODE))
 static void ResetSWusingGPIOx(void)
 {
 #ifdef GPIOx_RESET_MODE
@@ -2249,7 +2249,7 @@ void setup_internal_gsw(void)
 	
 
 #ifdef MT7621_USE_GE1
-#if defined (MT7621_ASIC_BOARD)	
+#if defined (MT7621_ASIC_BOARD)
 	RALINK_REG(RALINK_ETH_SW_BASE+0x100) = 0x2005e33b;//(GE1, Force 1000M/FD, FC ON)
 	mii_mgr_write(31, 0x3600, 0x5e30b);//PDMA is not ready,disable FC, Prevent HOL
 	mii_mgr_write(31, 0x3500, 0x8000);
@@ -2389,7 +2389,7 @@ static int rt2880_eth_setup(struct eth_device* dev)
 	u32	i;
 	u32	regValue;
 	u16	wTmp;
-	uchar	*temp;
+
 
 	printf("\n Waitting for RX_DMA_BUSY status Start... ");
 	while(1)
@@ -2629,7 +2629,7 @@ static int rt2880_eth_setup(struct eth_device* dev)
 	udelay(500);
 	regValue = RALINK_REG(GDMA1_FWD_CFG);
 	//printf("\n new,GDMA1_FWD_CFG = %08X \n",regValue);
-	
+
 	regValue = 0x80504000;
 	RALINK_REG(PSE_FQFC_CFG)=regValue;
 #endif // RT3883_USE_GE2 //
@@ -2637,7 +2637,7 @@ static int rt2880_eth_setup(struct eth_device* dev)
 #endif
 
 	for (i = 0; i < NUM_RX_DESC; i++) {
-		temp = memset((void *)&rx_ring[i],0,16);
+		memset((void *)&rx_ring[i],0,16);
 		rx_ring[i].rxd_info2.DDONE_bit = 0;
 
 		{
@@ -2655,7 +2655,7 @@ static int rt2880_eth_setup(struct eth_device* dev)
 	}
 
 	for (i=0; i < NUM_TX_DESC; i++) {
-		temp = memset((void *)&tx_ring0[i],0,16);
+		memset((void *)&tx_ring0[i],0,16);
 		tx_ring0[i].txd_info2.LS0_bit = 1;
 		tx_ring0[i].txd_info2.DDONE_bit = 1;
 		/* PN:
@@ -2720,7 +2720,7 @@ static int rt2880_eth_setup(struct eth_device* dev)
 }
 
 
-static int rt2880_eth_send(struct eth_device* dev, volatile void *packet, int length)
+static int rt2880_eth_send(struct eth_device* dev, void *packet, int length)
 {
 	int		status = -1;
 	int		i;
@@ -2775,18 +2775,23 @@ Retry:
 		goto Done;
 	}
 
-	tx_ring0[tx_cpu_owner_idx0].txd_info1.SDP0 = cpu_to_le32(phys_to_bus((u32) packet));
+	{ /*KEN: we copy data from cached dram to non cached, same underlying physical dram address. */
+		void *data = (void *)KSEG1ADDR(packet);
+		memcpy(data, packet, length);
+		tx_ring0[tx_cpu_owner_idx0].txd_info1.SDP0 = cpu_to_le32(phys_to_bus((u32) data));
+	}
+
 	tx_ring0[tx_cpu_owner_idx0].txd_info2.SDL0 = length;
 
+	tx_ring0[tx_cpu_owner_idx0].txd_info2.DDONE_bit = 0;
 #if 0
 	printf("==========TX==========(CTX=%d)\n",tx_cpu_owner_idx0);
 	printf("tx_ring0[tx_cpu_owner_idx0].txd_info1 =%x\n",tx_ring0[tx_cpu_owner_idx0].txd_info1);
-	printf("tx_ring0[tx_cpu_owner_idx0].txd_info2 =%x\n",tx_ring0[tx_cpu_owner_idx0].txd_info2);
+	printf("tx_ring0[tx_cpu_owner_idx0].txd_info2 =%x %p\n",tx_ring0[tx_cpu_owner_idx0].txd_info2,&tx_ring0[tx_cpu_owner_idx0].txd_info2);
 	printf("tx_ring0[tx_cpu_owner_idx0].txd_info3 =%x\n",tx_ring0[tx_cpu_owner_idx0].txd_info3);
 	printf("tx_ring0[tx_cpu_owner_idx0].txd_info4 =%x\n",tx_ring0[tx_cpu_owner_idx0].txd_info4);
 #endif
 
-	tx_ring0[tx_cpu_owner_idx0].txd_info2.DDONE_bit = 0;
 	status = length;
 
 	tx_cpu_owner_idx0 = (tx_cpu_owner_idx0+1) % NUM_TX_DESC;
@@ -2802,19 +2807,16 @@ Done:
 
 static int rt2880_eth_recv(struct eth_device* dev)
 {
-	int length = 0,hdr_len=0,bb=0;
+	int length = 0;
 	int inter_loopback_cnt =0;
 	u32 *rxd_info;
-#if !defined (RT3883_FPGA_BOARD) && !defined (RT3883_ASIC_BOARD)
-	u8 temp_mac[6];
-#endif
 
 	for (; ; ) {
 		rxd_info = (u32 *)KSEG1ADDR(&rx_ring[rx_dma_owner_idx0].rxd_info2);
 
 		if ( (*rxd_info & BIT(31)) == 0 )
 		{
-			hdr_len =0;
+			/*hdr_len =0;*/
 			break;
 		}
 
@@ -3227,14 +3229,14 @@ normal_cond:
 void input_value(u8 *str)
 {
 	if (str)
-		strcpy(console_buffer, str);
+		strcpy(console_buffer, (const char*)str);
 	else
 		console_buffer[0] = '\0';
 	while(1)
 	{
 		if (readline ("==:", 1) > 0)
 		{
-			strcpy (str, console_buffer);
+			strcpy ((char*)str, console_buffer);
 			break;
 		}
 		else

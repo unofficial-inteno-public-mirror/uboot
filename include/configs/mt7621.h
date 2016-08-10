@@ -27,10 +27,20 @@
 
 /* net stuff */
 //#define CONFIG_RT2880_ETH
+//#define CONFIG_DM_ETH
 #define MT7621_USE_GE1
-
+#define MT7621_ASIC_BOARD
+#define MAC_TO_MT7530_MODE
+#define PDMA_NEW
+#define RALINK_MDIO_ACCESS_FUN
+#define RALINK_EPHY_INIT
+#define RX_SCATTER_GATTER_DMA
+#define CONFIG_SYS_RX_ETH_BUFFER 60 /* code assumes 24+24 plus some extra I guess. */
+#define GPIO14_RESET_MODE
 
 #define CONFIG_BOARD_EARLY_INIT_F
+#define CONFIG_BOARD_EARLY_INIT_R
+
 #define CONFIG_DISPLAY_BOARDINFO
 
 #define CONFIG_MEMSIZE_IN_BYTES
@@ -41,12 +51,10 @@
 
 #define CONFIG_SYS_ISA_IO_BASE_ADDRESS	0
 
-#define MT7621_ASIC_BOARD
-
 /*
  * CPU Configuration
  */
-// KEN: BUG: timer wrong  runs at 440 
+// KEN: BUG: timer wrong  runs at 440
 //#define CONFIG_SYS_MHZ			880
 #define CONFIG_SYS_MHZ			880/2
 #define CONFIG_SYS_MIPS_TIMER_FREQ	(CONFIG_SYS_MHZ * 1000000)
@@ -59,7 +67,8 @@
 #define CONFIG_SYS_MONITOR_BASE		CONFIG_SYS_TEXT_BASE
 
 #define CONFIG_SYS_SDRAM_BASE		0x80000000 /* Cached addr */
-#define CONFIG_SYS_MEM_SIZE		(256 * 1024 * 1024)
+//#define CONFIG_SYS_MEM_SIZE		(256 * 1024 * 1024)
+#define CONFIG_SYS_MEM_SIZE		(128 * 1024 * 1024)
 
 #define CONFIG_SYS_INIT_SP_OFFSET	0x400000
 
@@ -159,6 +168,16 @@
                                                 "-(ubi)"
 #define CONFIG_CMD_UBIFS
 #define CONFIG_LZO
+
+
+#define CONFIG_EXTRA_ENV_SETTINGS               \
+        "autoload=no\0"                         \
+        "ethaddr=00:AA:BB:CC:DD:10\0"           \
+        "ipaddr=192.168.1.1\0"                  \
+        "serverip=192.1681.2.\0"
+
+
+
 /*
  * Commands
  */
