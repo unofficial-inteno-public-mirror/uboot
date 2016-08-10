@@ -10,7 +10,7 @@
 //#define CONFIG_MTD_DEBUG
 //#define CONFIG_MTD_DEBUG_VERBOSE 1
 
-#define TRACE32
+//#define TRACE32
 
 /********************************************************************************/
 /* hmmm  crap  from old uboot/include/configs/rt2888.h */
@@ -140,7 +140,7 @@
 /*
  * Environment in UBI
  */
-#define CONFIG_MTD_UBI_BEB_LIMIT 30 /* this is 30 blocks per 1024 -> 3% */
+#define CONFIG_MTD_UBI_BEB_LIMIT 30 /* this is 30 blocks per 1024 -> 3%, its also a runtime value do it's not stored on disk need to do same change in kernel */
 #define CONFIG_MTD_UBI_FASTMAP
 
 #define CONFIG_ENV_IS_IN_UBI
