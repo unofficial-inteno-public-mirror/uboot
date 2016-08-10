@@ -6,7 +6,7 @@
 
 #ifndef _MT7621_CONFIG_H
 #define _MT7621_CONFIG_H
-#define DEBUG
+//#define DEBUG
 #define TRACE32
 
 /********************************************************************************/
@@ -113,6 +113,7 @@
 #define CONFIG_MTK_MTD_NAND
 #define CONFIG_CMD_NAND
 
+
 #ifdef CONFIG_CMD_NAND
 #define CONFIG_SYS_MAX_NAND_DEVICE      1
 #define CONFIG_SYS_NAND_SELF_INIT
@@ -134,19 +135,25 @@
 
 
 /*
- * Environment
+ * Environment in UBI
  */
-#define CONFIG_ENV_IS_IN_NAND
-#define CONFIG_SYS_NAND_BLOCK_SIZE      (128*1024)
+#define CONFIG_ENV_IS_IN_UBI
+#define CONFIG_ENV_UBI_PART "ubi"
+#define CONFIG_ENV_UBI_VOLUME "env1"
+#define CONFIG_ENV_UBI_VOLUME_REDUND "env2"
+#define CONFIG_ENV_SIZE 126976 /* we have a full UBI LEB and that is 126976 bytes */
 
-#define CONFIG_SYS_MAX_FLASH_SECT       128
-#define CONFIG_SYS_MAX_FLASH_BANKS      1
+/* if in raw nand uncomment this */
+/* #define CONFIG_SYS_NAND_BLOCK_SIZE      (128*1024) */
 
-#define CONFIG_ENV_SIZE			(1024*10) /*can actually be 128kB */
-#define CONFIG_ENV_RANGE		(CONFIG_SYS_NAND_BLOCK_SIZE * 3)
+/* #define CONFIG_SYS_MAX_FLASH_SECT       128 */
+/* #define CONFIG_SYS_MAX_FLASH_BANKS      1 */
 
-#define CONFIG_ENV_OFFSET               (CONFIG_SYS_NAND_BLOCK_SIZE * 4)
-#define CONFIG_ENV_OFFSET_REDUND        (CONFIG_ENV_OFFSET + CONFIG_SYS_NAND_BLOCK_SIZE * 3)
+/* #define CONFIG_ENV_SIZE			(1024*10) /\*can actually be 128kB *\/ */
+/* #define CONFIG_ENV_RANGE		(CONFIG_SYS_NAND_BLOCK_SIZE * 3) */
+
+/* #define CONFIG_ENV_OFFSET               (CONFIG_SYS_NAND_BLOCK_SIZE * 4) */
+/* #define CONFIG_ENV_OFFSET_REDUND        (CONFIG_ENV_OFFSET + CONFIG_SYS_NAND_BLOCK_SIZE * 3) */
 
 
 
@@ -162,9 +169,7 @@
 #define CONFIG_MTD_DEVICE
 #define MTDIDS_DEFAULT          "nand0=mt7621.nand"
 
-#define MTDPARTS_DEFAULT        "mtdparts=mt7621.nand:512k(uboot),"     \
-                                                "384k(env1),"           \
-                                                "384k(env2),"           \
+#define MTDPARTS_DEFAULT        "mtdparts=mt7621.nand:1M(uboot),"     \
                                                 "-(ubi)"
 #define CONFIG_CMD_UBIFS
 #define CONFIG_LZO
@@ -174,8 +179,8 @@
         "autoload=no\0"                         \
         "ethaddr=00:AA:BB:CC:DD:10\0"           \
         "ipaddr=192.168.1.1\0"                  \
-        "serverip=192.1681.2.\0"
-
+        "serverip=192.168.1.2\0"                \
+        "mtdparts=" MTDPARTS_DEFAULT "\0"
 
 
 /*
