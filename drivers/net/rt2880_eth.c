@@ -1640,7 +1640,7 @@ void rt_gsw_init(void)
 
 	/*Init MT7530, we use MT7530 as default external switch*/
 	mii_mgr_write(31, 0x7000, 0x3);//reset MT7530
-	printf("#Reset_MT7530\n");
+	//printf("#Reset_MT7530\n");
 	udelay(100);
 	
 	for(i=0;i<=4;i++) 
@@ -2242,7 +2242,7 @@ void setup_internal_gsw(void)
 	mii_mgr_write(31, 0x3600, 0x8000);//force MAC link down before reset
 
 	mii_mgr_write(31, 0x7000, 0x3);//reset MT7530
-	printf("#Reset_MT7530\n");
+	//printf("#Reset_MT7530\n");
 	udelay(5);
 	
 
