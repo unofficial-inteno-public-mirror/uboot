@@ -523,7 +523,6 @@ struct eth_device* 	rt2880_pdev;
 
 volatile uchar	*PKT_HEADER_Buf;// = (uchar *)CFG_EMBEDED_SRAM_SDP0_BUF_START;
 static volatile uchar	PKT_HEADER_Buf_Pool[(PKTBUFSRX * PKTSIZE_ALIGN) + PKTALIGN];
-extern  uchar	*net_tx_packet;	/* THE transmit packet			*/
 extern volatile uchar	*PktBuf;
 
 
@@ -671,7 +670,6 @@ int rt2880_eth_initialize(bd_t *bis)
 	rt2880_eth_initd =0;
 	PktBuf = Pkt_Buf_Pool;
 	PKT_HEADER_Buf = PKT_HEADER_Buf_Pool;
-	net_tx_packet = NULL;
 	rx_ring = (struct PDMA_rxdesc *)KSEG1ADDR((ulong)&rx_ring_cache[0]);
 	tx_ring0 = (struct PDMA_txdesc *)KSEG1ADDR((ulong)&tx_ring0_cache[0]);
 
