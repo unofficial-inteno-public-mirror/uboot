@@ -42,6 +42,12 @@ int board_early_init_f(void)
 	value |= (0x1<<30);
 	RALINK_REG(RALINK_CLKCFG0_REG) = value;
 
+	/* make sure DMA has access to dram */
+	value = RALINK_REG(RALINK_DMA_ARB_BASE + 0xc);
+	value &= ~(0x1);
+	RALINK_REG(RALINK_DMA_ARB_BASE + 0xc) = value;
+
+
 	return 0;
 }
 
