@@ -74,6 +74,56 @@ void trigger_hw_reset(void)
 #endif
 }
 
+
+void config_usb_mtk_xhci(void)
+{
+        u32     regValue;
+
+        regValue = RALINK_REG(RALINK_SYSCTL_BASE + 0x10);
+        regValue = (regValue >> 6) & 0x7;
+        if(regValue >= 6) { //25Mhz Xtal
+                printf("\nConfig XHCI 25M PLL \n");
+                RALINK_REG(0xbe1d0784) = 0x20201a;
+                RALINK_REG(0xbe1d0c20) = 0x80004;
+                RALINK_REG(0xbe1d0c1c) = 0x18181819;
+                RALINK_REG(0xbe1d0c24) = 0x18000000;
+                RALINK_REG(0xbe1d0c38) = 0x25004a;
+                RALINK_REG(0xbe1d0c40) = 0x48004a;
+                RALINK_REG(0xbe1d0b24) = 0x190;
+                RALINK_REG(0xbe1d0b10) = 0x1c000000;
+                RALINK_REG(0xbe1d0b04) = 0x20000004;
+                RALINK_REG(0xbe1d0b08) = 0xf203200;
+
+                RALINK_REG(0xbe1d0b2c) = 0x1400028;
+                //RALINK_REG(0xbe1d0a30) =;
+                RALINK_REG(0xbe1d0a40) = 0xffff0001;
+                RALINK_REG(0xbe1d0a44) = 0x60001;
+        } else if (regValue >=3 ) { // 40 Mhz
+                printf("\nConfig XHCI 40M PLL \n");
+                RALINK_REG(0xbe1d0784) = 0x20201a;
+                RALINK_REG(0xbe1d0c20) = 0x80104;
+                RALINK_REG(0xbe1d0c1c) = 0x1818181e;
+                RALINK_REG(0xbe1d0c24) = 0x1e400000;
+                RALINK_REG(0xbe1d0c38) = 0x250073;
+                RALINK_REG(0xbe1d0c40) = 0x71004a;
+                RALINK_REG(0xbe1d0b24) = 0x140;
+                RALINK_REG(0xbe1d0b10) = 0x23800000;
+                RALINK_REG(0xbe1d0b04) = 0x20000005;
+                RALINK_REG(0xbe1d0b08) = 0x12203200;
+        
+                RALINK_REG(0xbe1d0b2c) = 0x1400028;
+                //RALINK_REG(0xbe1d0a30) =;
+                RALINK_REG(0xbe1d0a40) = 0xffff0001;
+                RALINK_REG(0xbe1d0a44) = 0x60001;
+        } else { //20Mhz Xtal
+
+                /* TODO */
+
+        }
+}
+
+
+
 /* just for eth driver now. */
 unsigned long mips_bus_feq;
 unsigned long mips_cpu_feq;
@@ -133,6 +183,7 @@ int board_early_init_r( void )
 		trigger_hw_reset();
 	}
 
+	config_usb_mtk_xhci();
 
 	return 0;
 
