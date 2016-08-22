@@ -91,6 +91,14 @@
 #define CONFIG_AUTO_COMPLETE
 #define CONFIG_CMDLINE_EDITING
 
+/* device tree */
+#define CONFIG_MIPS_BOOT_FDT
+//#define CONFIG_OF_LIBFDT
+//#define CONFIG_OF_BOARD_SETUP
+//#define CONFIG_OF_SYSTEM_SETUP
+//#define CONFIG_FIT_SIGNATURE
+//#define CONFIG_CMD_FDT
+
 /*
  * Serial driver
  */
@@ -183,6 +191,8 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS               \
         "autoload=no\0"                         \
+        "bootdelay=3"                           \
+        "bootargs=console=ttyS0,57600\0"        \
         "ethaddr=00:AA:BB:CC:DD:10\0"           \
         "ipaddr=192.168.1.1\0"                  \
         "serverip=192.168.1.2\0"                \
