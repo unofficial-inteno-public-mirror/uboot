@@ -92,7 +92,7 @@
 #define CONFIG_CMDLINE_EDITING
 
 /* device tree */
-#define CONFIG_MIPS_BOOT_FDT
+//#define CONFIG_MIPS_BOOT_FDT
 //#define CONFIG_OF_LIBFDT
 //#define CONFIG_OF_BOARD_SETUP
 //#define CONFIG_OF_SYSTEM_SETUP
