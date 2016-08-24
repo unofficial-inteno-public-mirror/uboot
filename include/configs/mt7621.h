@@ -176,6 +176,7 @@
 #define CONFIG_ENV_SIZE			(1024*10) /*can actually be 128kB */
 #endif
 
+#define CONFIG_BOOTDELAY      3       /* autoboot after 3 seconds     */
 #define CONFIG_CMD_UBI
 #define CONFIG_RBTREE
 #define CONFIG_MTD_PARTITIONS
