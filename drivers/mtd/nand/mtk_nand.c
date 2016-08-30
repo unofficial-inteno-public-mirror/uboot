@@ -1963,6 +1963,7 @@ int mtk_nand_probe(void)
 	struct mtd_info *mtd;
 	struct nand_chip *nand_chip;
 	int err = 0;
+	int rest,rows;
 
 	/* Allocate memory for the device structure (and zero it) */
 	host = kzalloc(sizeof(struct mtk_nand_host), GFP_KERNEL);
@@ -2004,12 +2005,22 @@ int mtk_nand_probe(void)
 		goto out;
 	}
 
+	/* addr cycle depends on size, there is two column cycles */
+	/* row cycles is dependent on how many bits is needed to address all pages */
+	rest = (unsigned long)nand_chip->chipsize/mtd->writesize;
+	rows = 0;
+	while(rest > 1){
+		rest = rest>>8;
+		rows++;
+	}
+	devinfo.addr_cycle = 2 + rows;
+
 	/* ecc stuff */
 
 	hw->nand_ecc_mode = NAND_ECC_HW;
 
 	nand_chip->ecc.mode = hw->nand_ecc_mode;    /* enable ECC */
-	nand_chip->ecc.strength = 1; // KEN ??????? sholde be 8 or ??
+	nand_chip->ecc.strength = 1; // KEN ??????? why ? should be 8 or 4 or ??
 
 	nand_chip->ecc.read_page = mtk_nand_read_page_hwecc;
 	nand_chip->ecc.write_page = mtk_nand_write_page_hwecc;
