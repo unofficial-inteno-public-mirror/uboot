@@ -207,6 +207,7 @@
         "update_root0=" \
                 "if tftpboot ${loadaddr} root.ubifs; then " \
                         "ubi write ${loadaddr} rootfs_0 $filesize;" \
+                        "setenv root_vol rootfs_0;" \
                 "fi;\0" \
         "boot_ubi="\
                 "run bootargs_ubi;" \
