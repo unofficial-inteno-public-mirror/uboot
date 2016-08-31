@@ -209,6 +209,11 @@
                         "ubi write ${loadaddr} rootfs_0 $filesize;" \
                         "setenv root_vol rootfs_0;" \
                 "fi;\0" \
+        "boot_ram="\
+                "run bootargs_ram;" \
+                "tftpboot ${loadaddr} initramfs-kernel.bin;"\
+                "tftpboot ${fdtaddr}  dtb;"        \
+                "bootm ${loadaddr} - ${fdtaddr}\0" \
         "boot_ubi="\
                 "run bootargs_ubi;" \
                 "ubifsmount ubi0:${root_vol};"\
@@ -216,7 +221,9 @@
                 "ubifsload ${fdtaddr} /boot/dtb;"\
                 "bootm ${loadaddr} - ${fdtaddr}\0" \
         "bootargs_ubi=setenv bootargs " \
-                "${extra} console=ttyS0,${baudrate} root=ubi0:${root_vol} ubi.mtd=ubi rootfstype=ubifs ${mtdparts}\0"
+                "${extra} console=ttyS0,${baudrate} root=ubi0:${root_vol} ubi.mtd=ubi rootfstype=ubifs ${mtdparts}\0" \
+        "bootargs_ram=setenv bootargs " \
+                "${extra} console=ttyS0,${baudrate} ${mtdparts}\0"
 
 
 /*
