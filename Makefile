@@ -730,7 +730,7 @@ DO_STATIC_RELA =
 endif
 
 # Always append ALL so that arch config.mk's can add custom ones
-ALL-y += u-boot.srec u-boot.bin u-boot.sym System.map u-boot.cfg binary_size_check
+ALL-y += u-boot.srec u-boot.bin u-boot.sym System.map u-boot.cfg binary_size_check uboot.img
 
 ALL-$(CONFIG_ONENAND_U_BOOT) += u-boot-onenand.bin
 ifeq ($(CONFIG_SPL_FSL_PBL),y)
@@ -834,6 +834,27 @@ else
 u-boot.bin: u-boot-nodtb.bin FORCE
 	$(call if_changed,copy)
 endif
+
+# Make mediatek uimage
+DDR_CHIP=DEFAULT_DDR3_2048M
+CFG_ENV_IS=IN_NAND
+
+uboot.img: u-boot.bin
+	cp mt7621_stage_L2.bin uboot_a.bin
+	./mt7621_ddr.sh uboot_a.bin uboot_a.bin mt7621_ddr_param.txt $(DDR_CHIP) $(CFG_ENV_IS)
+	echo "0 10"|xxd -r|dd bs=1 count=1 seek=38 of=uboot_a.bin conv=notrunc
+	echo "0 11"|xxd -r|dd bs=1 count=1 seek=39 of=uboot_a.bin conv=notrunc
+	chmod 777 uboot_a.bin
+	dd if=u-boot.bin of=uboot_a.bin bs=1 count=$(shell stat -c %s u-boot.bin) \
+	seek=$(shell echo "(($(shell stat -c %s mt7621_stage_L2.bin)+4095)/4096)*4096-64" | bc) \
+	conv=notrunc
+	./tools/mkimage_mediatek -A mips -T standalone -C none \
+		-a 0xA0200000 -e 0xa0200000 \
+		-n "NAND Flash Image" \
+		-r DDR3 -s 16 -t 256 -u 32 \
+		-y 40 \
+		-z 5000 -d uboot_a.bin uboot.img
+	@printf "\nImage file is uboot.img.\n"
 
 %.imx: %.bin
 	$(Q)$(MAKE) $(build)=arch/arm/imx-common $@
