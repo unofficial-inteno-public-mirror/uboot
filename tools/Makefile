@@ -48,6 +48,9 @@ HOSTCFLAGS_img2srec.o := -pedantic
 hostprogs-$(CONFIG_XWAY_SWAP_BYTES) += xway-swap-bytes
 HOSTCFLAGS_xway-swap-bytes.o := -pedantic
 
+hostprogs-y += mkimage_mediatek
+mkimage_mediatek-objs := mkimage_mediatek.o crc.o lib/crc32.o
+
 hostprogs-y += mkenvimage
 mkenvimage-objs := mkenvimage.o os_support.o lib/crc32.o
 
