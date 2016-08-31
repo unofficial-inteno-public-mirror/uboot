@@ -182,22 +182,40 @@
 #define CONFIG_MTD_PARTITIONS
 #define CONFIG_CMD_MTDPARTS
 #define CONFIG_MTD_DEVICE
-#define MTDIDS_DEFAULT          "nand0=mt7621.nand"
 
-#define MTDPARTS_DEFAULT        "mtdparts=mt7621.nand:1M(uboot),"     \
-                                                "-(ubi)"
+#define NANDID                  "MT7621-NAND"
+#define MTDIDS_DEFAULT          "nand0=" NANDID ""
+#define MTDPARTS_DEFAULT        "mtdparts=" NANDID ":1M(uboot),-(ubi)"
+
 #define CONFIG_CMD_UBIFS
 #define CONFIG_LZO
-
+#define CONFIG_BOOTCOMMAND "run boot_ubi"
 
 #define CONFIG_EXTRA_ENV_SETTINGS               \
-        "autoload=no\0"                         \
-        "bootdelay=3"                           \
-        "bootargs=console=ttyS0,57600\0"        \
         "ethaddr=00:AA:BB:CC:DD:10\0"           \
         "ipaddr=192.168.1.1\0"                  \
         "serverip=192.168.1.2\0"                \
-        "mtdparts=" MTDPARTS_DEFAULT "\0"
+        "mtdparts=" MTDPARTS_DEFAULT "\0"       \
+        "loadaddr=0x85000000\0"                 \
+        "fdtaddr=0x84000000\0" \
+        "root_vol=rootfs_0\0"   \
+        "update_uboot=" \
+                "if tftpboot ${loadaddr} uboot.img; then " \
+                        "nand erase.part uboot ;" \
+                        "nand write ${loadaddr} uboot $filesize;" \
+                "fi;\0" \
+        "update_root0=" \
+                "if tftpboot ${loadaddr} root.ubifs; then " \
+                        "ubi write ${loadaddr} rootfs_0 $filesize;" \
+                "fi;\0" \
+        "boot_ubi="\
+                "run bootargs_ubi;" \
+                "ubifsmount ubi0:${root_vol};"\
+                "ubifsload ${loadaddr} /boot/uImage;"\
+                "ubifsload ${fdtaddr} /boot/dtb;"\
+                "bootm ${loadaddr} - ${fdtaddr}\0" \
+        "bootargs_ubi=setenv bootargs " \
+                "${extra} console=ttyS0,${baudrate} root=ubi0:${root_vol} ubi.mtd=ubi rootfstype=ubifs ${mtdparts}\0"
 
 
 /*
