@@ -1,0 +1,11 @@
+if TARGET_EX300
+
+config SYS_BOARD
+	default "ex300"
+
+config SYS_VENDOR
+	default "inteno"
+
+config SYS_CONFIG_NAME
+	default "ex300"
+endif
