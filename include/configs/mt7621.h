@@ -1,7 +1,5 @@
 /*
- * Copyright (C) 2013 Gabor Juhos <juhosg@openwrt.org>
  *
- * SPDX-License-Identifier:	GPL-2.0
  */
 
 #ifndef _MT7621_CONFIG_H
@@ -48,17 +46,12 @@
 
 #define CONFIG_MEMSIZE_IN_BYTES
 #define CONFIG_LZMA
-//#define CONFIG_PCNET
-//#define CONFIG_PCNET_79C973
-//#define PCNET_HAS_PROM
 
 #define CONFIG_SYS_ISA_IO_BASE_ADDRESS	0
 
 /*
  * CPU Configuration
  */
-// KEN: BUG: timer wrong  runs at 440
-//#define CONFIG_SYS_MHZ			880
 #define CONFIG_SYS_MHZ			880/2
 #define CONFIG_SYS_MIPS_TIMER_FREQ	(CONFIG_SYS_MHZ * 1000000)
 
@@ -91,13 +84,6 @@
 #define CONFIG_AUTO_COMPLETE
 #define CONFIG_CMDLINE_EDITING
 
-/* device tree */
-//#define CONFIG_MIPS_BOOT_FDT
-//#define CONFIG_OF_LIBFDT
-//#define CONFIG_OF_BOARD_SETUP
-//#define CONFIG_OF_SYSTEM_SETUP
-//#define CONFIG_FIT_SIGNATURE
-//#define CONFIG_CMD_FDT
 
 /*
  * Serial driver
@@ -131,19 +117,14 @@
 
 /* memory layout
 
-   u-boot	    0  -> 512kB         0        0x07ffff
-   env		512KB  -> 896KB         0x80000  0x0dffff
-   env		896kB  -> 1280KB        0xe0000  0X13ffff
-   UBI		1280kB -> 128MB         0X140000
-
+   u-boot	0  -> 1M
+   UBI		1M -> reest of memory
 */
 
 //#include "../rt_mmap.h"
 // KEN:BUG  can not be included here but we need the addresses... what to do ???
 #define RALINK_NAND_CTRL_BASE            0xBE003000
 #define CONFIG_SYS_NAND_BASE RALINK_NAND_CTRL_BASE
-
-
 
 /*
  * Environment in UBI
@@ -156,20 +137,6 @@
 #define CONFIG_ENV_UBI_VOLUME "env1"
 #define CONFIG_ENV_UBI_VOLUME_REDUND "env2"
 #define CONFIG_ENV_SIZE 126976 /* we have a full UBI LEB and that is 126976 bytes */
-
-/* if in raw nand uncomment this */
-/* #define CONFIG_SYS_NAND_BLOCK_SIZE      (128*1024) */
-
-/* #define CONFIG_SYS_MAX_FLASH_SECT       128 */
-/* #define CONFIG_SYS_MAX_FLASH_BANKS      1 */
-
-/* #define CONFIG_ENV_SIZE			(1024*10) /\*can actually be 128kB *\/ */
-/* #define CONFIG_ENV_RANGE		(CONFIG_SYS_NAND_BLOCK_SIZE * 3) */
-
-/* #define CONFIG_ENV_OFFSET               (CONFIG_SYS_NAND_BLOCK_SIZE * 4) */
-/* #define CONFIG_ENV_OFFSET_REDUND        (CONFIG_ENV_OFFSET + CONFIG_SYS_NAND_BLOCK_SIZE * 3) */
-
-
 
 #else
 #define CONFIG_ENV_IS_NOWHERE
@@ -232,4 +199,4 @@
 
 #define CONFIG_SYS_LONGHELP		/* verbose help, undef to save memory */
 
-#endif /* _MALTA_CONFIG_H */
+#endif /* */
