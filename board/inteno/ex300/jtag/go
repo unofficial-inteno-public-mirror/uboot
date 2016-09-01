@@ -1,0 +1,11 @@
+#!/bin/bash
+
+export T32SYS=/opt/t32
+export T32TMP=/tmp
+export T32ID=T32
+export T32PDFVIEWER=/opt/t32/_pdfviewer.sh
+
+xset +fp /opt/t32/fonts
+xset fp rehash
+/opt/t32/bin/pc_linux64/t32mips
+

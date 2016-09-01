@@ -1,0 +1,75 @@
+B::RES
+B::SYS.CPU MIPS1004KMT
+;sys.cpu mips1004k
+;sys.config irpre 20.
+;sys.config drpre 4.
+B::SYS.O E Little
+B::sys.jc 25.mhz
+B::SYS.M UP
+
+//enddo
+
+IF 1==0
+(
+GLOBAL &BOOTSTRAP
+GLOBAL &DRAM_TYPE
+GLOBAL &DRAMSPEED
+GLOBAL &XTAL
+GLOBAL &ddr_cfg
+GLOBAL &mempll_cfg
+GLOBAL &MPLL_IN_LBK
+
+&MPLL_IN_LBK=1
+&BOOTSTRAP=D.L(D:0xBE000010)
+&DRAM_TYPE=(&BOOTSTRAP>>4)&0x01
+&XTAL=4
+//(&BOOTSTRAP>>6)&0x7
+
+&mempll_cfg="C:\T32\ICE\mt7621_asic_mpll_xtal40_200.cmm"
+//&mempll_cfg="C:\T32\ICE\mt7621_asic_mpll_xtal40_400.cmm"
+//&mempll_cfg="C:\T32\ICE\mt7621_asic_mpll_xtal40_600.cmm"
+
+IF &DRAM_TYPE==0
+(
+&DRAMSPEED=1200
+&ddr_cfg="C:\T32\ICE\mt7621_asic_ddr3.cmm"
+)
+ELSE
+(
+&DRAMSPEED=800
+&ddr_cfg="C:\T32\ICE\mt7621_asic_ddr2.cmm"
+)
+DO &mempll_cfg
+DO &ddr_cfg
+)
+ELSE
+(
+B::DATA.OUT 0xBE100004 %LONG 0x1	//reset PSE SRAM 
+wait 20ms
+B::DATA.OUT 0xBE100004 %LONG 0x6	//full use PSE SRAM
+B::DATA.OUT 0xBE00001C %LONG 0x2	//set ICE_MODE+DDR calibration
+//B::D.LOAD  x:\Uboot\mt7621_stage_sram.bin 0xbe108800
+
+//B::D.LOAD.b  /home/kenjo/proj/inteno/mediatek/Uboot/mt7621_stage_sram.bin 0xbe108800
+B::D.LOAD.b  /home/kenjo/proj/inteno/mediatek/Uboot/ken.img 0xbe108800
+
+
+
+B::B::R.S PC 0xBE108800
+break 0xBE108008 /write /onchip
+go;
+
+wait !state.run()
+break 0xBE108008 /disable
+DATA.OUT 0xBE100004 %LONG 0x1	//reset PSE SRAM
+
+)
+
+//B::D.LOAD  x:\Uboot\u-boot
+B::D.LOAD /home/kenjo/proj/inteno/mediatek/Uboot/u-boot
+//B::D.LOAD /tmp/mediatek/Uboot/u-boot
+
+go
+
+//send /home/kenjo/proj/inteno/mediatek/Uboot/uboot.img
+//sYmbol.RELOCate -18254000

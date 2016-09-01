@@ -1,0 +1,99 @@
+///////////////////////////////////////////////////////////////////////////////
+// basic cpu config for lauterbach
+// 
+B::RES
+B::SYS.CPU MIPS1004KMT
+//B::sys.jc 25.mhz
+B::sys.jc 75.mhz
+B::SYS.M UP
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Make the internal sram available for the cpu core
+//
+B::DATA.OUT 0xBE100004 %LONG 0x1	//reset PSE SRAM 
+wait 20ms
+B::DATA.OUT 0xBE100004 %LONG 0x6	//full use PSE SRAM
+B::DATA.OUT 0xBE00001C %LONG 0x2	//set ICE_MODE+DDR calibration
+
+
+///////////////////////////////////////////////////////////////////////////////
+// load dram init code into sram and run 
+//
+B::D.LOAD.b ../../../../sram.bin 0xbe108800
+B::B::R.S PC 0xBE108800
+break 0xBE108008 /write /onchip
+go;
+
+
+///////////////////////////////////////////////////////////////////////////////
+// when dram setup remove sram again
+//
+wait !state.run()
+break 0xBE108008 /disable
+DATA.OUT 0xBE100004 %LONG 0x1	//reset PSE SRAM
+
+
+///////////////////////////////////////////////////////////////////////////////
+// load u-boot into dram. 
+//
+B::D.LOAD ../../../../u-boot
+
+
+
+// manual relocate. this is a bit hard to figure out what value to use.
+// atomatic relocate below 
+//sYmbol.RELOCate -10231000
+
+go
+
+//commet this out and compile u-boot with option "#define TRACE32" set in config file.
+//then an infinite loop as added to u-boot. we break the execution and caclulate the
+// offsett to use for symbols 
+
+enddo
+
+///////////////////////////////////////////////////////////////////////////////
+// magic for calculating symbol offset after u-boot relocated itself. 
+/////////////////////////////////////////////////////////////////////
+wait 1s
+break
+
+&x=register(pc)
+&x=&x+4
+Register.Set pc &x
+
+&x=register(r4)
+print "&x"
+&x=-1*&x
+sYmbol.RELOCate &x
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+
+
+// set breakpoint on relocated sysmbols and then run as normal
+
+
+//break mtk_nand_probe
+//break.set load_fact_bbt
+//break.set nand_command
+//break.set nand_do_read_ops
+//break.set nand_scan_ident
+//break.set nand_get_flash_type
+//break.set nand_do_read_ops
+//break.set mtk_nand_read_oob
+//break.set mtk_nand_read_oob_hw
+//break.set mtk_nand_read_oob_raw
+//break.set nand_read_oob
+//break.set mtk_nand_erase
+//break.set rt2880_eth_setup
+//break.set rt2880_eth_init
+//break.set rt2880_eth_send
+//break.set rt2880_eth_recv
+//break.set rt2880_eth_halt
+
+
+
+go
+
