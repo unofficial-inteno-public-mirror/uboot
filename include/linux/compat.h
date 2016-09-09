@@ -41,6 +41,7 @@ extern struct p_current *current;
 
 #define GFP_ATOMIC ((gfp_t) 0)
 #define GFP_KERNEL ((gfp_t) 0)
+#define GFP_DMA ((gfp_t) 0)
 #define GFP_NOFS ((gfp_t) 0)
 #define GFP_USER ((gfp_t) 0)
 #define __GFP_NOWARN ((gfp_t) 0)
