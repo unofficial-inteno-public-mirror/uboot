@@ -37,7 +37,6 @@
 #define RALINK_EPHY_INIT
 #define RX_SCATTER_GATTER_DMA
 #define CONFIG_SYS_RX_ETH_BUFFER 60 /* code assumes 24+24 plus some extra I guess. */
-#define GPIO14_RESET_MODE
 
 #define CONFIG_BOARD_EARLY_INIT_F
 #define CONFIG_BOARD_EARLY_INIT_R

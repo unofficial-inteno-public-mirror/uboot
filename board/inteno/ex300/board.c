@@ -62,8 +62,22 @@ int board_early_init_f(void)
 #define RT2880_REG_PIORESET     (RT2880_PRGIO_ADDR + 0x40)
 
 
+
+void _machine_restart(void)
+{
+	void __iomem *reset_base;
+
+	reset_base = (void __iomem *)CKSEG1ADDR(RT2880_RSTCTRL_REG);
+	__raw_writel(0x1, reset_base);
+	mdelay(1000);
+}
+
+
 void trigger_hw_reset(void)
 {
+
+	printf("BUG: we are supposed to do some reset here.!\n");
+
 #ifdef GPIO14_RESET_MODE
         //set GPIO14 as output to trigger hw reset circuit
         RALINK_REG(RT2880_REG_PIODIR)|=1<<14; //output mode
