@@ -51,18 +51,6 @@ int board_early_init_f(void)
 	return 0;
 }
 
-#define RT2880_PRGIO_ADDR       (RALINK_SYSCTL_BASE + 0x600) // Programmable I/O
-#define RT2880_REG_PIOINT       (RT2880_PRGIO_ADDR + 0x90)
-#define RT2880_REG_PIOEDGE      (RT2880_PRGIO_ADDR + 0xA0)
-#define RT2880_REG_PIORENA      (RT2880_PRGIO_ADDR + 0x50)
-#define RT2880_REG_PIOFENA      (RT2880_PRGIO_ADDR + 0x60)
-#define RT2880_REG_PIODATA      (RT2880_PRGIO_ADDR + 0x20)
-#define RT2880_REG_PIODIR       (RT2880_PRGIO_ADDR + 0x00)
-#define RT2880_REG_PIOSET       (RT2880_PRGIO_ADDR + 0x30)
-#define RT2880_REG_PIORESET     (RT2880_PRGIO_ADDR + 0x40)
-
-
-
 void _machine_restart(void)
 {
 	void __iomem *reset_base;
@@ -71,23 +59,6 @@ void _machine_restart(void)
 	__raw_writel(0x1, reset_base);
 	mdelay(1000);
 }
-
-
-void trigger_hw_reset(void)
-{
-
-	printf("BUG: we are supposed to do some reset here.!\n");
-
-#ifdef GPIO14_RESET_MODE
-        //set GPIO14 as output to trigger hw reset circuit
-        RALINK_REG(RT2880_REG_PIODIR)|=1<<14; //output mode
-
-        RALINK_REG(RT2880_REG_PIODATA)|=1<<14; //pull high
-	udelay(100);
-        RALINK_REG(RT2880_REG_PIODATA)&=~(1<<14); //pull low
-#endif
-}
-
 
 void config_usb_mtk_xhci(void)
 {
@@ -173,6 +144,8 @@ int board_early_init_r( void )
 #define RT2880_SWCPURST         (1<<3)
 
 
+/*KEN: BUG: we should find some way to tell linux what happened.*/
+/* here we remove the bit and that is probably not to smart */
 	reg = RALINK_REG(RT2880_RSTSTAT_REG);
 	if(reg & RT2880_WDRST ){
 		printf("***********************\n");
@@ -180,21 +153,20 @@ int board_early_init_r( void )
 		printf("***********************\n");
 		RALINK_REG(RT2880_RSTSTAT_REG)|=RT2880_WDRST;
 		RALINK_REG(RT2880_RSTSTAT_REG)&=~RT2880_WDRST;
-		trigger_hw_reset();
+
 	}else if(reg & RT2880_SWSYSRST){
 		printf("******************************\n");
 		printf("Software System Reset Occurred\n");
 		printf("******************************\n");
 		RALINK_REG(RT2880_RSTSTAT_REG)|=RT2880_SWSYSRST;
 		RALINK_REG(RT2880_RSTSTAT_REG)&=~RT2880_SWSYSRST;
-		trigger_hw_reset();
+
 	}else if (reg & RT2880_SWCPURST){
 		printf("***************************\n");
 		printf("Software CPU Reset Occurred\n");
 		printf("***************************\n");
 		RALINK_REG(RT2880_RSTSTAT_REG)|=RT2880_SWCPURST;
 		RALINK_REG(RT2880_RSTSTAT_REG)&=~RT2880_SWCPURST;
-		trigger_hw_reset();
 	}
 
 	config_usb_mtk_xhci();
