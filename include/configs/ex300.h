@@ -144,6 +144,7 @@
 
 //#define CONFIG_BOOTDELAY      3       /* autoboot after 3 seconds     */
 #define CONFIG_CMD_UBI
+#define CONFIG_UBI_SILENCE_MSG
 #define CONFIG_RBTREE
 #define CONFIG_MTD_PARTITIONS
 #define CONFIG_CMD_MTDPARTS
