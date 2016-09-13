@@ -4,11 +4,11 @@
 
 #ifndef _MT7621_CONFIG_H
 #define _MT7621_CONFIG_H
-//#define DEBUG
-//#define CONFIG_MTD_DEBUG
-//#define CONFIG_MTD_DEBUG_VERBOSE 1
+/*#define DEBUG
+#define CONFIG_MTD_DEBUG
+#define CONFIG_MTD_DEBUG_VERBOSE 1
 
-//#define TRACE32
+#define TRACE32 */
 
 /********************************************************************************/
 /* hmmm  crap  from old uboot/include/configs/rt2888.h */
@@ -27,8 +27,8 @@
 #define CONFIG_MT7621
 
 /* net stuff */
-//#define CONFIG_RT2880_ETH
-//#define CONFIG_DM_ETH
+/*#define CONFIG_RT2880_ETH
+  #define CONFIG_DM_ETH */
 #define MT7621_USE_GE1
 #define MT7621_ASIC_BOARD
 #define MAC_TO_MT7530_MODE
@@ -57,12 +57,12 @@
 /*
  * Memory map
  */
-//#define CONFIG_SYS_TEXT_BASE		0xbfc00000 /* Rom version */
+/*#define CONFIG_SYS_TEXT_BASE		0xbfc00000 */ /* Rom version */
 #define CONFIG_SYS_TEXT_BASE		0xA0200000 /* DRAM version */
 #define CONFIG_SYS_MONITOR_BASE		CONFIG_SYS_TEXT_BASE
 
 #define CONFIG_SYS_SDRAM_BASE		0x80000000 /* Cached addr */
-//#define CONFIG_SYS_MEM_SIZE		(256 * 1024 * 1024)
+/*#define CONFIG_SYS_MEM_SIZE		(256 * 1024 * 1024) */
 #define CONFIG_SYS_MEM_SIZE		(128 * 1024 * 1024)
 
 #define CONFIG_SYS_INIT_SP_OFFSET	0x400000
@@ -91,8 +91,8 @@
 #define SERIAL_CLOCK_DIVISOR 16
 
 
-//#include "../rt_mmap.h"
-// KEN:BUG  can not be included here but we need the addresses... what to do ???
+/* #include "../rt_mmap.h" */
+/* KEN:BUG  can not be included here but we need the addresses... what to do ??? */
 #define CONFIG_SYS_NS16550_SERIAL
 #define CONFIG_SYS_NS16550_REG_SIZE	-4			/* little endian 32 bit registers, clearly we need to have -4 in reg size */
 #define CONFIG_SYS_NS16550_CLK		(50 * 1000 * 1000)	/* we have a 50 MHz base clock into the UART hardware */
@@ -120,8 +120,8 @@
    UBI		1M -> reest of memory
 */
 
-//#include "../rt_mmap.h"
-// KEN:BUG  can not be included here but we need the addresses... what to do ???
+/* #include "../rt_mmap.h" */
+/* KEN:BUG  can not be included here but we need the addresses... what to do ??? */
 #define RALINK_NAND_CTRL_BASE            0xBE003000
 #define CONFIG_SYS_NAND_BASE RALINK_NAND_CTRL_BASE
 
