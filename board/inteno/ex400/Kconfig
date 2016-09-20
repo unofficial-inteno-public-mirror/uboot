@@ -1,11 +1,11 @@
-if TARGET_EX300
+if TARGET_EX400
 
 config SYS_BOARD
-	default "ex300"
+	default "ex400"
 
 config SYS_VENDOR
 	default "inteno"
 
 config SYS_CONFIG_NAME
-	default "ex300"
+	default "ex400"
 endif
