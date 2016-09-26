@@ -156,30 +156,36 @@ static int do_httpd(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	struct ip_addr gw;
         struct netif *netif_ret;
 
+        static init_done=0;
+
         if (argc < 1)
                 return CMD_RET_USAGE;
 
+        if (!init_done){
 
-        IP4_ADDR(&ipaddr, 192, 168, 1, 3);
-	IP4_ADDR(&gw, 192, 168, 1, 1);
-	IP4_ADDR(&netmask, 255, 255, 255, 0);
-        lwip_init();
+                IP4_ADDR(&ipaddr, 192, 168, 1, 3);
+                IP4_ADDR(&gw, 192, 168, 1, 1);
+                IP4_ADDR(&netmask, 255, 255, 255, 0);
+                lwip_init();
 
-        netif.name[0] = 'e';
-        netif.name[1] = '0';
-        netif.flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP;
+                netif.name[0] = 'e';
+                netif.name[1] = '0';
+                netif.flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP;
 
-        netif_ret = netif_add(&netif, &ipaddr, &netmask, &gw, NULL, &uboot_net_init, ethernet_input);
+                netif_ret = netif_add(&netif, &ipaddr, &netmask, &gw, NULL, &uboot_net_init, ethernet_input);
 
-        if (netif_ret == 0){
-                printf("Error running netif_add() \n");
-                return 1;
+                if (netif_ret == 0){
+                        printf("Error running netif_add() \n");
+                        return 1;
+                }
+
+                netif_set_default(&netif);
+                netif_set_up(&netif);
+
+                init_done = 1;
+                printf("netif_add() OK!\n");
         }
 
-        netif_set_default(&netif);
-        netif_set_up(&netif);
-
-        printf("netif_add() OK!\n");
         lwip_redirect = 1;
         /* KEN: TODO: init uboot net so eth works */
 	net_init();
@@ -217,4 +223,4 @@ U_BOOT_CMD(
         "A rescue http server",
         "Used to allow a user to upload a system with a http browser"
         "exit with ctrl-c"
-);
+        );
