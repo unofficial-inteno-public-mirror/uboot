@@ -158,6 +158,7 @@
 #define CONFIG_LZO
 #define CONFIG_BOOTCOMMAND "run boot_ubi"
 
+
 #define CONFIG_EXTRA_ENV_SETTINGS               \
         "ethaddr=00:AA:BB:CC:DD:10\0"           \
         "ipaddr=192.168.1.1\0"                  \

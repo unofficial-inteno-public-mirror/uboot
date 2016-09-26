@@ -39,10 +39,11 @@
 #define PKTALIGN	ARCH_DMA_MINALIGN
 
 /* IPv4 addresses are always 32 bits in size */
+#ifndef LWIP
 struct in_addr {
 	__be32 s_addr;
 };
-
+#endif
 /**
  * An incoming packet handler.
  * @param pkt    pointer to the application packet
@@ -346,6 +347,8 @@ struct vlan_ethernet_hdr {
 /*
  *	Internet Protocol (IP) header.
  */
+
+#ifndef LWIP
 struct ip_hdr {
 	u8		ip_hl_v;	/* header length and version	*/
 	u8		ip_tos;		/* type of service		*/
@@ -358,6 +361,7 @@ struct ip_hdr {
 	struct in_addr	ip_src;		/* Source IP address		*/
 	struct in_addr	ip_dst;		/* Destination IP address	*/
 };
+#endif
 
 #define IP_OFFS		0x1fff /* ip offset *= 8 */
 #define IP_FLAGS	0xe000 /* first 3 bits */

@@ -612,6 +612,8 @@ UBOOTINCLUDE    := \
 		$(if $(CONFIG_SYS_THUMB_BUILD), $(if $(CONFIG_HAS_THUMB2),, \
 			-I$(srctree)/arch/$(ARCH)/thumb1/include),) \
 		-I$(srctree)/arch/$(ARCH)/include \
+		-I$(srctree)/include/lwip \
+		-I$(srctree)/include/lwip/ipv4 \
 		-include $(srctree)/include/linux/kconfig.h
 
 NOSTDINC_FLAGS += -nostdinc -isystem $(shell $(CC) -print-file-name=include)
@@ -677,6 +679,7 @@ libs-y += test/
 libs-y += test/dm/
 libs-$(CONFIG_UT_ENV) += test/env/
 libs-$(CONFIG_UT_OVERLAY) += test/overlay/
+libs-y += lib_lwip/
 
 libs-y += $(if $(BOARDDIR),board/$(BOARDDIR)/)
 

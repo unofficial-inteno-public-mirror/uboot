@@ -340,7 +340,7 @@ void net_auto_load(void)
 	tftp_start(TFTPGET);
 }
 
-static void net_init_loop(void)
+void net_init_loop(void)
 {
 	if (eth_get_dev())
 		memcpy(net_ethaddr, eth_get_ethaddr(), 6);
@@ -1023,6 +1023,8 @@ static void receive_icmp(struct ip_udp_hdr *ip, int len,
 		break;
 	}
 }
+int lwip_redirect;
+void lwip_new_packet( void * packet, int len);
 
 void net_process_received_packet(uchar *in_packet, int len)
 {
@@ -1037,6 +1039,12 @@ void net_process_received_packet(uchar *in_packet, int len)
 	ushort cti = 0, vlanid = VLAN_NONE, myvlanid, mynvlanid;
 
 	debug_cond(DEBUG_NET_PKT, "packet received\n");
+
+
+	if (lwip_redirect == 1) {
+		lwip_new_packet( in_packet, len);
+		return;
+	}
 
 	net_rx_packet = in_packet;
 	net_rx_packet_len = len;
