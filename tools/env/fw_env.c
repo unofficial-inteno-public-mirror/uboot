@@ -1660,19 +1660,24 @@ static int parse_config(struct env_opts *opts)
 	if (HaveRedundEnv)
 		ubi_check_dev(1);
 
-
-	if (HaveRedundEnv) {
-		rc = check_device_config(1);
+	/* if we are not using UBI do more checks */
+	if ( !(IS_UBI(0) || IS_UBI(1)) )
+	{
+		rc = check_device_config(0);
 		if (rc < 0)
 			return rc;
+		if (HaveRedundEnv) {
+			rc = check_device_config(1);
+			if (rc < 0)
+				return rc;
 
-		if (ENVSIZE(0) != ENVSIZE(1)) {
-			fprintf(stderr,
-				"Redundant environments have unequal size");
-			return -1;
+			if (ENVSIZE(0) != ENVSIZE(1)) {
+				fprintf(stderr,
+					"Redundant environments have unequal size");
+				return -1;
+			}
 		}
 	}
-
 	usable_envsize = CUR_ENVSIZE - sizeof(uint32_t);
 	if (HaveRedundEnv)
 		usable_envsize -= sizeof(char);
