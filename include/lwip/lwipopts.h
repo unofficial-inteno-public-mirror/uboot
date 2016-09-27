@@ -38,7 +38,8 @@
 #define LWIP_COMPAT_MUTEX               1
 #define LWIP_SO_RCVTIMEO                1
 
-#define LWIP_DEBUG                     1
+#if 0
+#define LWIP_DEBUG                     0
 
 #define LWIP_DBG_MIN_LEVEL 0
 #define LWIP_COMPAT_SOCKETS 1
@@ -75,8 +76,9 @@
 #define TCP_RST_DEBUG    LWIP_DBG_ON
 #define ETHARP_DEBUG     LWIP_DBG_ON
 
+#endif
 
-#define LWIP_DBG_TYPES_ON (LWIP_DBG_ON|LWIP_DBG_TRACE|LWIP_DBG_STATE|LWIP_DBG_FRESH|LWIP_DBG_HALT)
+//#define LWIP_DBG_TYPES_ON (LWIP_DBG_ON|LWIP_DBG_TRACE|LWIP_DBG_STATE|LWIP_DBG_FRESH|LWIP_DBG_HALT)
 
 #endif /* __LWIPOPTS_H__ */
 

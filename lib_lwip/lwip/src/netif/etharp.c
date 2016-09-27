@@ -696,7 +696,6 @@ etharp_arp_input(struct netif *netif, struct eth_addr *ethaddr, struct pbuf *p)
   const u8_t * ethdst_hwaddr;
 #endif /* LWIP_AUTOIP */
 
-  printf("ken: hello \n");
   LWIP_ERROR("netif != NULL", (netif != NULL), return;);
 
   /* drop short ARP packets: we have to check for p->len instead of p->tot_len here
@@ -707,11 +706,9 @@ etharp_arp_input(struct netif *netif, struct eth_addr *ethaddr, struct pbuf *p)
       (s16_t)SIZEOF_ETHARP_PACKET));
     ETHARP_STATS_INC(etharp.lenerr);
     ETHARP_STATS_INC(etharp.drop);
-  printf("KEN D\n");
   pbuf_free(p);
     return;
   }
-  printf("KEN A\n");
   ethhdr = (struct eth_hdr *)p->payload;
   hdr = (struct etharp_hdr *)((u8_t*)ethhdr + SIZEOF_ETH_HDR);
 #if ETHARP_SUPPORT_VLAN
@@ -730,7 +727,6 @@ etharp_arp_input(struct netif *netif, struct eth_addr *ethaddr, struct pbuf *p)
       hdr->hwtype, hdr->hwlen, hdr->proto, hdr->protolen));
     ETHARP_STATS_INC(etharp.proterr);
     ETHARP_STATS_INC(etharp.drop);
-      printf("KEN B\n");
     pbuf_free(p);
     return;
   }
@@ -834,7 +830,6 @@ etharp_arp_input(struct netif *netif, struct eth_addr *ethaddr, struct pbuf *p)
     ETHARP_STATS_INC(etharp.err);
     break;
   }
-    printf("KEN C\n");
   /* free ARP packet */
   pbuf_free(p);
 }
@@ -1292,7 +1287,7 @@ ethernet_input(struct pbuf *p, struct netif *netif)
     ETHARP_STATS_INC(etharp.drop);
     goto free_and_return;
   }
-      printf("ken: iam here 3\n");
+
   /* points to packet payload, which starts with an Ethernet header */
   ethhdr = (struct eth_hdr *)p->payload;
   LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE,
@@ -1328,7 +1323,7 @@ ethernet_input(struct pbuf *p, struct netif *netif)
     ip_hdr_offset = SIZEOF_ETH_HDR + SIZEOF_VLAN_HDR;
   }
 #endif /* ETHARP_SUPPORT_VLAN */
-      printf("ken: iam here 4\n");
+
 #if LWIP_ARP_FILTER_NETIF
   netif = LWIP_ARP_FILTER_NETIF_FN(p, netif, htons(type));
 #endif /* LWIP_ARP_FILTER_NETIF*/
@@ -1346,13 +1341,12 @@ ethernet_input(struct pbuf *p, struct netif *netif)
       p->flags |= PBUF_FLAG_LLBCAST;
     }
   }
-  printf("ken: iam here 1\n");
+
   switch (type) {
 #if LWIP_ARP
     /* IP packet? */
     case PP_HTONS(ETHTYPE_IP):
       if (!(netif->flags & NETIF_FLAG_ETHARP)) {
-              printf("ken: iam here 5\n");
         goto free_and_return;
       }
 #if ETHARP_TRUST_IP_MAC
@@ -1362,10 +1356,8 @@ ethernet_input(struct pbuf *p, struct netif *netif)
       /* skip Ethernet header */
       if(pbuf_header(p, -ip_hdr_offset)) {
         LWIP_ASSERT("Can't move over header in packet", 0);
-              printf("ken: iam here 6\n");
         goto free_and_return;
       } else {
-                    printf("ken: iam here 7\n");
         /* pass to IP layer */
         ip_input(p, netif);
       }
@@ -1373,10 +1365,9 @@ ethernet_input(struct pbuf *p, struct netif *netif)
       
     case PP_HTONS(ETHTYPE_ARP):
       if (!(netif->flags & NETIF_FLAG_ETHARP)) {
-                                  printf("ken: iam here 8\n");
         goto free_and_return;
       }
-      printf("ken: iam here 2\n");
+
       /* pass p to ARP module */
       etharp_arp_input(netif, (struct eth_addr*)(netif->hwaddr), p);
       break;

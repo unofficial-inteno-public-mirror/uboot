@@ -34,7 +34,7 @@ struct netif netif;
 
 u32_t sys_now(void)
 {
-        printf("%s\n",__func__);
+        printf("%s not implemented\n",__func__);
         return 0;
 }
 
@@ -43,8 +43,6 @@ void lwip_new_packet( void * bufptr, int len)
 {
         struct pbuf *p, *q;
         struct eth_hdr *ethhdr;
-
-        printf("ken: new packet \n");
 
         /* We allocate a pbuf chain of pbufs from the pool. */
         p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
@@ -68,7 +66,6 @@ void lwip_new_packet( void * bufptr, int len)
                         /* IP or ARP packet? */
                 case ETHTYPE_IP:
                 case ETHTYPE_ARP:
-                        printf("KEN: IP/ARP\n");
                         /* full packet send to tcpip_thread to process */
                         if (netif.input(p, &netif) != ERR_OK) {
                                 LWIP_DEBUGF(NETIF_DEBUG, ("ethernetif_input: IP input error\n"));
@@ -76,14 +73,12 @@ void lwip_new_packet( void * bufptr, int len)
                         }
                         break;
                 default:
-                        printf("KEN: A  pbuf_free(p);");
                         pbuf_free(p);
                         break;
                 }
 
         } else {
                 /* drop packet(); */
-                printf("KEN: B  pbuf_free(p);");
                 pbuf_free(p);
         }
         return;
@@ -100,8 +95,6 @@ static err_t uboot_net_output(struct netif * netif, struct pbuf *p)
         struct pbuf *q;
         char *p_buf;
         int len;
-
-        printf("KEN: uboot_net_output() \n");
 
         p_buf = tx_buf;
         len = 0;
@@ -136,16 +129,16 @@ extern u8 net_ethaddr[6];
 err_t
 uboot_net_init(struct netif *netif)
 {
-        printf("%s %x\n",__func__, (int)netif);
+
         netif->output = etharp_output;
         netif->linkoutput = uboot_net_output;
         netif->mtu = 1500;
         /* hardware address length */
         netif->hwaddr_len = 6;
 
-        printf("dst %x, src [%x] [%x]\n",(int)&netif->hwaddr, (int)net_ethaddr, (int)&net_ethaddr[0]);
-        hexdump((char*)&netif->hwaddr,6);
-        hexdump((char*)&net_ethaddr[0],6);
+//        printf("dst %x, src [%x] [%x]\n",(int)&netif->hwaddr, (int)net_ethaddr, (int)&net_ethaddr[0]);
+//        hexdump((char*)&netif->hwaddr,6);
+//        hexdump((char*)&net_ethaddr[0],6);
         memcpy(&netif->hwaddr, net_ethaddr, 6);
 
         netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP;
@@ -168,7 +161,7 @@ void lwip_periodic_handle( void )
         /* tcp timer */
         if (get_timer(tcp_start) >= TCP_TMR_INTERVAL)
         {
-                printf("tcp_tmr()\n");
+//                printf("tcp_tmr()\n");
                 tcp_tmr();
                 tcp_start = get_timer(0);
         }
@@ -176,7 +169,7 @@ void lwip_periodic_handle( void )
         /* arp timer */
         if (get_timer(arp_start) >= ARP_TMR_INTERVAL)
         {
-                printf("etharp_tmr()\n");
+//                printf("etharp_tmr()\n");
                 etharp_tmr();
                 arp_start = get_timer(0);
         }
@@ -222,7 +215,7 @@ static int do_httpd(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
                 netif_set_up(&netif);
 
                 init_done = 1;
-                printf("netif_add() OK!\n");
+//                printf("netif_add() OK!\n");
         }
 
         lwip_redirect = 1;
@@ -234,13 +227,13 @@ static int do_httpd(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
                 /* if something has been received process it */
 		if(eth_rx() > 0)
 		{
-                        static int loop;
-                        printf("-------------------------------------------------------------------------------\n");
-                        printf("loop %d\n",loop++);
+//                        static int loop;
+//                        printf("-------------------------------------------------------------------------------\n");
+//                        printf("loop %d\n",loop++);
 
-                        printf("\nPacket in rx buffer from eth\n");
+//                        printf("\nPacket in rx buffer from eth\n");
                         lwip_periodic_handle();
-                        printf("\nafter lwip_periodic_handle()\n");
+//                        printf("\nafter lwip_periodic_handle()\n");
                 }
                 /* exit on ctrl-c */
 		if(ctrlc()){
