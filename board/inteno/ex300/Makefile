@@ -9,3 +9,6 @@ obj-y	= board.o
 obj-y  += lowlevel_init.o
 obj-y  += httpd.o
 
+obj-y  += httpserver_raw/httpd.o
+obj-y  += httpserver_raw/fs.o
+

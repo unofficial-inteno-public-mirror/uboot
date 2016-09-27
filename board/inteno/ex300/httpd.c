@@ -5,6 +5,7 @@
 
 /* uboot headers */
 #include <common.h>
+#include <console.h>
 
 /* lwip headers */
 #include <lwip/ip_addr.h>
@@ -20,7 +21,14 @@
 u32_t sys_now(void);
 void lwip_periodic_handle( void );
 
+/* from net.h but its hard to include that one. */
+void net_init(void);
+int eth_init(void);
+void net_init_loop(void);
+int eth_rx(void);
+void eth_halt(void);
 
+void httpd_init(void);
 
 struct netif netif;
 
@@ -35,7 +43,7 @@ void lwip_new_packet( void * bufptr, int len)
 {
         struct pbuf *p, *q;
         struct eth_hdr *ethhdr;
-        
+
         printf("ken: new packet \n");
 
         /* We allocate a pbuf chain of pbufs from the pool. */
@@ -78,22 +86,48 @@ void lwip_new_packet( void * bufptr, int len)
                 printf("KEN: B  pbuf_free(p);");
                 pbuf_free(p);
         }
-
         return;
 }
 
+int eth_send(void *packet, int length);
+char tx_buf[2000];
+
+/* due to resuing the uboot driver we cant send the pbuf directly to the driver,
+   the data needs to be in one buffer so cpy to a tempporary buffer.
+*/
 static err_t uboot_net_output(struct netif * netif, struct pbuf *p)
 {
         struct pbuf *q;
+        char *p_buf;
+        int len;
+
         printf("KEN: uboot_net_output() \n");
+
+        p_buf = tx_buf;
+        len = 0;
 
         for(q = p; q != NULL; q = q->next) {
         /* Send the data from the pbuf to the interface, one pbuf at a
            time. The size of the data in each pbuf is kept in the ->len
            variable. */
-                eth_send(q->payload, q->len);
+                memcpy(p_buf,q->payload, q->len);
+                p_buf += q->len;
+                len += q->len;
         }
+
+        eth_send(tx_buf, len);
+
         return 0;
+}
+
+void hexdump(char *buf, int len){
+        int i;
+
+        printf("\n");
+        for (i=0;i<len;i++){
+                printf("%02x:", (unsigned char)buf[i]);
+        }
+        printf("\n");
 }
 
 #define ETHERNET_MTU 1500
@@ -110,6 +144,8 @@ uboot_net_init(struct netif *netif)
         netif->hwaddr_len = 6;
 
         printf("dst %x, src [%x] [%x]\n",(int)&netif->hwaddr, (int)net_ethaddr, (int)&net_ethaddr[0]);
+        hexdump((char*)&netif->hwaddr,6);
+        hexdump((char*)&net_ethaddr[0],6);
         memcpy(&netif->hwaddr, net_ethaddr, 6);
 
         netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP;
@@ -150,16 +186,19 @@ extern int lwip_redirect;
 
 static int do_httpd(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
-        int ret;
 	struct ip_addr ipaddr;
 	struct ip_addr netmask;
 	struct ip_addr gw;
         struct netif *netif_ret;
 
-        static init_done=0;
+        static int init_done=0;
 
         if (argc < 1)
                 return CMD_RET_USAGE;
+
+	net_init();
+        eth_init();
+	net_init_loop();
 
         if (!init_done){
 
@@ -188,10 +227,8 @@ static int do_httpd(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
         lwip_redirect = 1;
         /* KEN: TODO: init uboot net so eth works */
-	net_init();
-        eth_init();
-	net_init_loop();
-
+        httpd_init();
+        
         while(1)
 	{
                 /* if something has been received process it */
