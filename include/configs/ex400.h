@@ -190,7 +190,16 @@
         "bootargs_ubi=setenv bootargs " \
                 "${extra} console=ttyS0,${baudrate} root=ubi0:${root_vol} ubi.mtd=ubi rootfstype=ubifs ${mtdparts}\0" \
         "bootargs_ram=setenv bootargs " \
-                "${extra} console=ttyS0,${baudrate} ${mtdparts}\0"
+                "${extra} console=ttyS0,${baudrate} ${mtdparts}\0" \
+        "format_nand1="\
+                "nand erase.part ubi; reset\0" \
+        "format_nand2="\
+	"ubi create env1 19000;" \
+	"ubi create env2 19000;" \
+	"ubi create rootfs_0 2800000;" \
+	"saveenv\0"
+
+
 
 
 /*
