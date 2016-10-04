@@ -907,12 +907,14 @@ int zzip(void *dst, unsigned long *lenp, unsigned char *src,
 		int (*func)(unsigned long, unsigned long));
 
 /* lib/net_utils.c */
+#ifndef LWIP
 #include <net.h>
+
 static inline struct in_addr getenv_ip(char *var)
 {
 	return string_to_ip(getenv(var));
 }
-
+#endif
 int	pcmcia_init (void);
 
 #ifdef CONFIG_STATUS_LED

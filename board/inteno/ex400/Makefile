@@ -7,4 +7,14 @@
 
 obj-y	= board.o
 obj-y  += lowlevel_init.o
+obj-y  += lwip_start.o
+#obj-y  += httpd.o
+obj-y  += wget.o
+
+# used by wget to pars http headers from server. 
+obj-y  += http-parser/http_parser.o
+
+# webserver.
+obj-y  += httpserver_raw/httpd.o
+obj-y  += httpserver_raw/fs.o
 
