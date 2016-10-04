@@ -100,12 +100,12 @@ typedef int sys_prot_t;
 
 /*---define (sn)printf formatters for these lwip types, for lwip DEBUG/STATS--*/
 
-#define U16_F "4d"
-#define S16_F "4d"
-#define X16_F "4x"
-#define U32_F "8ld"
-#define S32_F "8ld"
-#define X32_F "8lx"
+#define U16_F "hu"
+#define S16_F "hd"
+#define X16_F "hx"
+#define U32_F "lu"
+#define S32_F "ld"
+#define X32_F "lx"
 
 /*--------------macros--------------------------------------------------------*/
 #ifndef LWIP_PLATFORM_ASSERT

@@ -26,7 +26,7 @@
 #define MEMP_SANITY_CHECK               1
 
 
-//#define TCP_MSS                 (1500 - 40)
+#define TCP_MSS                 (1500 - 40)
 //#define LWIP_DHCP               1
 #define LWIP_ICMP       1
 
@@ -39,7 +39,7 @@
 #define LWIP_SO_RCVTIMEO                1
 
 #if 0
-#define LWIP_DEBUG                     0
+#define LWIP_DEBUG                     1
 
 #define LWIP_DBG_MIN_LEVEL 0
 #define LWIP_COMPAT_SOCKETS 1
