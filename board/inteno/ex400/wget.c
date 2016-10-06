@@ -52,6 +52,7 @@ char *wget_file;
 
 ulong load_addr,cur_load_addr;
 ulong time_start;
+int body_ok;
 
 void handle_new_header( void)
 {
@@ -77,11 +78,14 @@ static int headers_complete_cb(http_parser* parser) {
 static int message_complete_cb(http_parser* parser) {
 //        printf(PRE "%s()\n",__func__);
 
-        /* get time since start */
-        time_start = get_timer(time_start);
-        printf(PRE "Data received = %lu / ", cur_load_addr - load_addr);
-        print_size((cur_load_addr - load_addr) / (time_start ? time_start : 1) * 1000, "/s\n");
-        setenv_hex("filesize", cur_load_addr - load_addr);
+        if (body_ok){
+                /* get time since start */
+                time_start = get_timer(time_start);
+                printf(PRE "Data received = %lu / ", cur_load_addr - load_addr);
+                print_size((cur_load_addr - load_addr) / (time_start ? time_start : 1) * 1000, "/s\n");
+                setenv_hex("filesize", cur_load_addr - load_addr);
+        }
+
         lwip_break();
         return 0;
 }
@@ -100,6 +104,12 @@ static int request_url_cb(http_parser* parser, const char *at, size_t length) {
 }
 static int request_status_cb(http_parser* parser, const char *at, size_t length) {
 //        printf(PRE "%s(%d)[%.*s]\n",__func__,length,length,at);
+
+        if (! strncmp("OK",at,2)){
+                body_ok = 1;
+        }else
+                printf(PRE "Respose from server = %.*s\n",length,at);
+
         return 0;
 }
 static int header_field_cb(http_parser* parser,const char *at, size_t length)
@@ -154,8 +164,10 @@ static int body_cb(http_parser* parser,const char *at, size_t length)
 {
 //        printf(PRE "%s(%d)[%.*s]\n", __func__, length, length, at);
 //        printf(PRE "%s(%d)[%lx]\n", __func__, length, cur_load_addr);
-        memcpy((void*)cur_load_addr, at, length);
-        cur_load_addr += length;
+        if (body_ok){
+                memcpy((void*)cur_load_addr, at, length);
+                cur_load_addr += length;
+        }
         return 0;
 }
 
@@ -282,8 +294,10 @@ wget(void)
                 return;
         }
 
-        /* dummy data to pass to callbacks*/
+        /* set state to invalid first */
+        body_ok = 0;
 
+        /* dummy data to pass to callbacks*/
         tcp_arg(wget_pcb, (void *)0xdeadbeef);
 
         /* register callbacks with the pcb */
