@@ -2,6 +2,11 @@
 #define __LWIPOPTS_H__
 
 /**
+ * Overrides
+ * include/lwip/lwip/opt.h
+ */
+
+/**
  * NO_SYS==1: Provides VERY minimal functionality. Otherwise,
  * use lwIP facilities.
  */
@@ -13,6 +18,8 @@
  * already use it.
  */
 #define MEM_LIBC_MALLOC         1
+//#define MEM_USE_POOLS           1
+//#define LWIP_MALLOC_MEMPOOL     1
 
 /**
  * MEM_ALIGNMENT: should be set to the alignment of the CPU
@@ -27,6 +34,7 @@
 
 
 #define TCP_MSS                 (1500 - 40)
+#define TCP_WND                         (10 * TCP_MSS)
 //#define LWIP_DHCP               1
 #define LWIP_ICMP       1
 
