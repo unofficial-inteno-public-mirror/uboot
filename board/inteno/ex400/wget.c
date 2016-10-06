@@ -80,8 +80,8 @@ static int message_complete_cb(http_parser* parser) {
         /* get time since start */
         time_start = get_timer(time_start);
         printf(PRE "Data received = %lu / ", cur_load_addr - load_addr);
-        print_size((cur_load_addr - load_addr) / time_start * 1000, "/s\n");
-
+        print_size((cur_load_addr - load_addr) / (time_start ? time_start : 1) * 1000, "/s\n");
+        setenv_hex("filesize", cur_load_addr - load_addr);
         lwip_break();
         return 0;
 }
