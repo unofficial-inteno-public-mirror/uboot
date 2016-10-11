@@ -140,7 +140,7 @@ void httpd_post_finished(void *connection, char *response_uri, u16_t response_ur
 
         strcpy(response_uri,OK_uri);
 
-        lwip_break(30000); /* stop lwip main loop, we are done */
+        lwip_break(40000); /* stop lwip main loop, we are done */
         return;
 err:
         strcpy(response_uri,FAIL_uri);

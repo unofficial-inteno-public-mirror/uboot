@@ -220,8 +220,30 @@ err_t lwip_start( void )
 	struct ip_addr netmask;
 	struct ip_addr gw;
         struct netif *netif_ret;
+        char *s;
 
         static int init_done=0;
+
+        s = getenv("ipaddr");
+        if (s){
+                ipaddr_aton(s, &ipaddr);
+        }else{
+                IP4_ADDR(&ipaddr, 192, 168, 1, 1);
+        }
+
+        s = getenv("gatewayip");
+        if (s){
+                ipaddr_aton(s, &gw);
+        }else{
+                IP4_ADDR(&gw, 0, 0, 0,0);
+        }
+
+        s = getenv("netmask");
+        if (s){
+                ipaddr_aton(s, &netmask);
+        }else{
+                IP4_ADDR(&netmask, 255, 255, 255, 0);
+        }
 
 	net_init();
         eth_init();
@@ -229,9 +251,6 @@ err_t lwip_start( void )
 
         if (!init_done){
 
-                IP4_ADDR(&ipaddr, 192, 168, 1, 3);
-                IP4_ADDR(&gw, 192, 168, 1, 1);
-                IP4_ADDR(&netmask, 255, 255, 255, 0);
                 lwip_init();
 
                 netif.name[0] = 'e';
