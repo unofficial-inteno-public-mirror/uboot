@@ -16,10 +16,12 @@
 #include <lwip/netif/etharp.h>
 #include <lwip/tcpip.h>
 
+#include "lwip_start.h"
+
 u32_t sys_now(void);
 static void lwip_periodic_handle( void );
 
-/* from net.h but its hard to include that one. */
+/* from net.h but its hard to include that one. here */
 void net_init(void);
 int eth_init(void);
 void net_init_loop(void);

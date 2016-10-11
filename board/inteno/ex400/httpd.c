@@ -15,17 +15,10 @@
 #include <lwip/tcp_impl.h>
 #include <lwip/netif/etharp.h>
 #include <lwip/tcpip.h>
+#include "lwip_start.h"
+#include "httpserver_raw/httpd.h"
 
 #define PRE "httpd: "
-
-//atoi strtol(nptr, NULL, 10);
-
-void lwip_loop( void);
-err_t lwip_start( void );
-void lwip_stop( void );
-void lwip_break( int );
-
-void httpd_init(void);
 
 ulong load_addr,cur_load_addr;
 ulong time_start;
@@ -115,7 +108,7 @@ void httpd_post_finished(void *connection, char *response_uri, u16_t response_ur
 
 
 
-        printf(PRE "Data received = %lu / ", data_len);
+        printf(PRE "Data received = %u / ", data_len);
         print_size((cur_load_addr - load_addr) / (time_start ? time_start : 1) * 1000, "/s\n");
         setenv_hex("filesize", data_len);
 
@@ -150,12 +143,7 @@ err:
 
 static int do_httpd(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
-	struct ip_addr ipaddr;
-	struct ip_addr netmask;
-	struct ip_addr gw;
-        struct netif *netif_ret;
         char *s;
-        static int init_done=0;
 
         /* pre-set load_addr */
         s = getenv("loadaddr");
