@@ -198,3 +198,32 @@ int board_eth_init(bd_t *bis)
 	return rt2880_eth_initialize(bis);
 }
 #endif
+
+#define RT2880_PRGIO_ADDR       (RALINK_SYSCTL_BASE + 0x600) // Programmable I/O
+#define RT2880_REG_PIODIR       (RT2880_PRGIO_ADDR + 0x00)
+#define RT2880_REG_PIODATA      (RT2880_PRGIO_ADDR + 0x20)
+
+static int do_rescue(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	//enable gpio 18
+	RALINK_REG(0xbe000060) |= (1 << 8); //set WDT_MODE bit 8
+	RALINK_REG(0xbe000060) &= ~(1 << 9); //set WDT_MODE bit 9
+
+        //set GPIO18 as input
+        RALINK_REG(RT2880_REG_PIODIR)&= ~(1<<18); //input mode
+
+	/* logic inverted a 1 means the button is not pressed */
+        if ( ! (RALINK_REG(RT2880_REG_PIODATA) & 1<<18) ){
+		run_command("httpd",0);
+	}
+
+        return 0;
+}
+
+
+U_BOOT_CMD(
+        rescue,   1,      0,      do_rescue,
+        "test if we should entere resque mode",
+	"If the reset pin is active start the httpd rescue mode"
+        "exit with ctrl-c"
+        );
