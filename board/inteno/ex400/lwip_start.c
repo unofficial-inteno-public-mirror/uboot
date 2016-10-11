@@ -37,6 +37,7 @@ char tx_buf[2000];
 
 struct netif netif;
 static int loop_active;
+static int delay_start;
 
 u32_t sys_now(void)
 {
@@ -173,10 +174,16 @@ static void lwip_periodic_handle( void )
         }
 }
 
-void lwip_break( void)
+void lwip_break( int delay)
 {
-        loop_active = 0;
+        loop_active = -1*delay;
+
+        if (delay < 0){
+                delay_start = get_timer(0);
+        }
+        printf("loop_active = %d\n",loop_active);
 }
+
 void lwip_loop( void)
 {
         loop_active = 1;
@@ -185,19 +192,19 @@ void lwip_loop( void)
                 /* if something has been received process it */
 		if(eth_rx() > 0)
 		{
-//                        static int loop;
-//                        printf("-------------------------------------------------------------------------------\n");
-//                        printf("loop %d\n",loop++);
-
-//                        printf("\nPacket in rx buffer from eth\n");
                         lwip_periodic_handle();
-//                        printf("\nafter lwip_periodic_handle()\n");
                 }
                 /* exit on ctrl-c */
 		if(ctrlc()){
 			printf("\nlwip stop.\n\n");
                         break;
 		}
+
+                /* do we have a delayed shutdown ? */
+                if(loop_active < 0){
+                        if ((-1*loop_active) < get_timer(delay_start))
+                                loop_active = 0;
+                }
 	}
 
         lwip_redirect = 0;

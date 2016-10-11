@@ -7,7 +7,7 @@
 void lwip_loop( void);
 err_t lwip_start( void );
 void lwip_stop( void );
-void lwip_break( void );
+void lwip_break( int );
 
 //#define PRE "!!!!!!!!!!!!!!!!!!!!"
 #define PRE "wget: "
@@ -86,7 +86,7 @@ static int message_complete_cb(http_parser* parser) {
                 setenv_hex("filesize", cur_load_addr - load_addr);
         }
 
-        lwip_break();
+        lwip_break(0);
         return 0;
 }
 static int chunk_header_cb(http_parser* parser) {

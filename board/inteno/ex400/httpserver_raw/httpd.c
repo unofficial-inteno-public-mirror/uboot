@@ -1730,7 +1730,7 @@ http_post_request(struct pbuf **inp, struct http_state *hs,
         int content_len;
         char *conten_len_num = scontent_len + HTTP_HDR_CONTENT_LEN_LEN;
         *scontent_len_end = 0;
-        content_len = atoi(conten_len_num);
+        content_len = simple_strtol(conten_len_num, NULL, 10);
         if (content_len > 0) {
           /* adjust length of HTTP header passed to application */
           const char *hdr_start_after_uri = uri_end + 1;
@@ -2173,6 +2173,9 @@ http_init_file(struct http_state *hs, struct fs_file *file, int is_09, const cha
 #endif /* LWIP_HTTPD_TIMING */
 #if !LWIP_HTTPD_DYNAMIC_HEADERS
     LWIP_ASSERT("HTTP headers not included in file system", hs->handle->http_header_included);
+    if (!hs->handle->http_header_included){
+            printf("ken: uri = [%s]\n",uri);
+    }
 #endif /* !LWIP_HTTPD_DYNAMIC_HEADERS */
 #if LWIP_HTTPD_SUPPORT_V09
     if (hs->handle->http_header_included && is_09) {
