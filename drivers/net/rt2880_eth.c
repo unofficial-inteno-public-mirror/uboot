@@ -2389,11 +2389,11 @@ static int rt2880_eth_setup(struct eth_device* dev)
 	u16	wTmp;
 
 
-	printf("\n Waitting for RX_DMA_BUSY status Start... ");
+//	printf("\n Waitting for RX_DMA_BUSY status Start... ");
 	while(1)
 		if(!isDMABusy(dev))
 			break;
-	printf("done\n\n");
+//	printf("done\n\n");
 
 
 	// Case1: RT288x/RT3883/MT7621 GE + GigaPhy

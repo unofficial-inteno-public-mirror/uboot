@@ -43,7 +43,7 @@ static int delay_start;
 
 u32_t sys_now(void)
 {
-        printf("%s not implemented\n",__func__);
+        //printf("%s not implemented\n",__func__);
         return 0;
 }
 
@@ -183,7 +183,6 @@ void lwip_break( int delay)
         if (delay < 0){
                 delay_start = get_timer(0);
         }
-        printf("loop_active = %d\n",loop_active);
 }
 
 void lwip_loop( void)
