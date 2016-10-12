@@ -946,7 +946,7 @@ int rt2880_mdio_access(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]
 
 U_BOOT_CMD(
  	mdio,	4,	1,	rt2880_mdio_access,
- 	"mdio   - Ralink PHY register R/W command !!\n",
+ 	"mdio   - Ralink PHY register R/W command !!",
  	"mdio.r [phy_addr(dec)] [reg_addr(dec)] \n"
  	"mdio.w [phy_addr(dec)] [reg_addr(dec)] [data(HEX)] \n"
  	"mdio.anoff GMAC1 Force link status enable !!  \n"
