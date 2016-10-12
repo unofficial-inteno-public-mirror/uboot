@@ -316,6 +316,9 @@ static int do_wget(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         char *s, *end, *ustr = NULL;
         struct http_parser_url url;
 
+        wget_file = NULL;
+        wget_hostname = NULL;
+
         /* pre-set load_addr */
         s = getenv("loadaddr");
         if (s != NULL)
@@ -363,28 +366,38 @@ static int do_wget(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         printf("UF_FRAGMENT= [%.*s]\n",url.field_data[UF_FRAGMENT].len, ustr + url.field_data[UF_FRAGMENT].off );
         printf("UF_USERINFO= [%.*s]\n",url.field_data[UF_USERINFO].len, ustr + url.field_data[UF_USERINFO].off );
 
-        return 0;
+
 #endif
         if (!url.field_data[UF_HOST].len){
-                printf("wget: need to have a ip number in the URL\n");
-                return CMD_RET_USAGE;
+                /* we did not get any valid URL. assume we only got the filename */
+                s = getenv("serverip");
+                printf("wget: [%s] is not a valid url. create one [http://%s/%s]\n",ustr, s, ustr);
+
+                wget_hostname = strdup(s);
+
+                wget_file = malloc(strlen(strdup(ustr))+1);
+                sprintf(wget_file,"/%s",ustr);
+
+        }else {
+                wget_hostname = malloc(url.field_data[UF_HOST].len+1);
+                sprintf(wget_hostname,"%.*s",url.field_data[UF_HOST].len, ustr + url.field_data[UF_HOST].off);
         }
-        wget_hostname = malloc(url.field_data[UF_HOST].len+1);
-        sprintf(wget_hostname,"%.*s",url.field_data[UF_HOST].len, ustr + url.field_data[UF_HOST].off);
 
         if (url.field_data[UF_PORT].len){
                 wget_port = simple_strtoul(ustr + url.field_data[UF_PORT].off, NULL, 10);
         }else
                 wget_port = 80;
 
-        if (!url.field_data[UF_PATH].len){
+        if (url.field_data[UF_HOST].len && !url.field_data[UF_PATH].len){
                 printf("wget: need to have a file path in the URL\n");
                 free(wget_hostname);
                 return CMD_RET_USAGE;
         }
 
-        wget_file = malloc(url.field_data[UF_PATH].len+1);
-        sprintf(wget_file,"%.*s",url.field_data[UF_PATH].len, ustr + url.field_data[UF_PATH].off);
+        if (!wget_file){
+                wget_file = malloc(url.field_data[UF_PATH].len+1);
+                sprintf(wget_file,"%.*s",url.field_data[UF_PATH].len, ustr + url.field_data[UF_PATH].off);
+        }
 
         lwip_start();
         wget();

@@ -156,7 +156,7 @@
 
 #define CONFIG_CMD_UBIFS
 #define CONFIG_LZO
-#define CONFIG_BOOTCOMMAND "run boot_ubi"
+#define CONFIG_BOOTCOMMAND "rescue;run boot_ubi"
 
 
 #define CONFIG_EXTRA_ENV_SETTINGS               \
@@ -167,20 +167,21 @@
         "loadaddr=0x85000000\0"                 \
         "fdtaddr=0x84000000\0" \
         "root_vol=rootfs_0\0"   \
+        "dl_prog=wget\0" \
         "update_uboot=" \
-                "if tftpboot ${loadaddr} uboot.img; then " \
+                "if ${dl_prog} ${loadaddr} uboot.img; then " \
                         "nand erase.part uboot ;" \
                         "nand write ${loadaddr} uboot $filesize;" \
                 "fi;\0" \
         "update_root0=" \
-                "if tftpboot ${loadaddr} root.ubifs; then " \
+                "if ${dl_prog} ${loadaddr} root.ubifs; then " \
                         "ubi write ${loadaddr} rootfs_0 $filesize;" \
                         "setenv root_vol rootfs_0;" \
                 "fi;\0" \
         "boot_ram="\
                 "run bootargs_ram;" \
-                "tftpboot ${loadaddr} initramfs-kernel.bin;"\
-                "tftpboot ${fdtaddr}  dtb;"        \
+                "${dl_prog} ${loadaddr} initramfs-kernel.bin;"\
+                "${dl_prog} ${fdtaddr}  dtb;"        \
                 "bootm ${loadaddr} - ${fdtaddr}\0" \
         "boot_ubi="\
                 "run bootargs_ubi;" \
