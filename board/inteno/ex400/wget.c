@@ -411,6 +411,10 @@ static int do_wget(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
                         ret = 1;
                 }else
                         ret = 0;
+
+                /* the the http server respond with data ?? if not return error */
+                if (!body_ok)
+                        ret = 1;
         }
 
         free(wget_hostname);
