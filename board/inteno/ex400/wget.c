@@ -3,11 +3,7 @@
 #include "lwip/tcp.h"
 #include "http-parser/http_parser.h"
 #include <malloc.h>
-
-void lwip_loop( void);
-err_t lwip_start( void );
-void lwip_stop( void );
-void lwip_break( int );
+#include "lwip_start.h"
 
 //#define PRE "!!!!!!!!!!!!!!!!!!!!"
 #define PRE "wget: "
@@ -315,6 +311,7 @@ static int do_wget(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         ulong addr;
         char *s, *end, *ustr = NULL;
         struct http_parser_url url;
+        int ret;
 
         wget_file = NULL;
         wget_hostname = NULL;
@@ -399,17 +396,26 @@ static int do_wget(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
                 sprintf(wget_file,"%.*s",url.field_data[UF_PATH].len, ustr + url.field_data[UF_PATH].off);
         }
 
-        lwip_start();
-        wget();
+        ret = lwip_start();
+        if (ret == ERR_OK)
+        {
+                wget();
 
-        /* main loop ctrl-c to quit */
-        lwip_loop();
-        tcp_close(wget_pcb);
-        lwip_stop();
+                /* main loop ctrl-c to quit */
+                ret = lwip_loop();
+                tcp_close(wget_pcb);
+                lwip_stop();
+
+                /* transform lwip err to uboot command return code */
+                if (ret != ERR_OK){
+                        ret = 1;
+                }else
+                        ret = 0;
+        }
 
         free(wget_hostname);
         free(wget_file);
-        return 0;
+        return ret;
 }
 
 U_BOOT_CMD(

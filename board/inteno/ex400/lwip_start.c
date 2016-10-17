@@ -185,7 +185,7 @@ void lwip_break( int delay)
         }
 }
 
-void lwip_loop( void)
+err_t lwip_loop( void)
 {
         loop_active = 1;
         while(loop_active)
@@ -198,7 +198,8 @@ void lwip_loop( void)
                 /* exit on ctrl-c */
 		if(ctrlc()){
 			printf("\nlwip stop.\n\n");
-                        break;
+                        lwip_redirect = 0;
+                        return ERR_IF;
 		}
 
                 /* do we have a delayed shutdown ? */
@@ -209,6 +210,7 @@ void lwip_loop( void)
 	}
 
         lwip_redirect = 0;
+        return ERR_OK;
 }
 void lwip_stop( void)
 {
