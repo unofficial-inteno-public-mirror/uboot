@@ -368,7 +368,7 @@ static int do_wget(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         if (!url.field_data[UF_HOST].len){
                 /* we did not get any valid URL. assume we only got the filename */
                 s = getenv("serverip");
-                printf("wget: [%s] is not a valid url. create one [http://%s/%s]\n",ustr, s, ustr);
+                printf("wget: [%s] is not a valid url. Trying with [http://%s/%s]\n",ustr, s, ustr);
 
                 wget_hostname = strdup(s);
 
