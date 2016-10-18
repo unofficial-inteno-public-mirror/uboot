@@ -114,7 +114,7 @@ void httpd_post_finished(void *connection, char *response_uri, u16_t response_ur
 
 
         /* do some sanity checks on new image */
-        if (run_command("ubi write ${loadaddr} rootfs_0 $filesize", 0))
+        if (run_command("y2image burn rootfs_0", 0))
                 goto err;
         if (run_command("ubifsmount ubi0:rootfs_0", 0))
                 goto err;
