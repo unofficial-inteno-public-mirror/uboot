@@ -4,6 +4,7 @@
 #include "http-parser/http_parser.h"
 #include <malloc.h>
 #include "lwip_start.h"
+#include "getopt.h"
 
 //#define PRE "!!!!!!!!!!!!!!!!!!!!"
 #define PRE "wget: "
@@ -306,12 +307,22 @@ wget(void)
         tcp_connect(wget_pcb, &ip, wget_port, wget_tcp_connect);
 }
 
+
+void getopt_init(void)
+{
+        optarg=0;
+        optopt=0;
+        optind=1;
+        opterr=0;
+}
+
+
 static int do_wget(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
         ulong addr;
         char *s, *end, *ustr = NULL;
         struct http_parser_url url;
-        int ret;
+        int ret,opt,timeout=0,script=0;
 
         wget_file = NULL;
         wget_hostname = NULL;
@@ -322,30 +333,48 @@ static int do_wget(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
                 load_addr = simple_strtoul(s, NULL, 16);
 
         http_parser_url_init(&url);
+        getopt_init();
+        while ((opt = getopt(argc, argv, "st:")) != -1) {
+                switch (opt) {
+                case 's':
+                        printf("file is going to be executed as a script\n");
+                        script=1;
+                        break;
+                case 't':
+                        timeout = simple_strtoul(optarg, NULL, 16);
+                        printf("Timeout set to %d\n",timeout);
+                        break;
+                default: /* '?' */
+                        printf("not supported option\n");
+                        return 1;
+                }
+        }
 
-        switch (argc) {
-        case 1:
+        printf("optind = %d\n",optind);
+
+        switch (argc-optind) {
+        case 0:
                 return CMD_RET_USAGE;
                 break;
 
-        case 2: /*
+        case 1: /*
                  * Only one arg - accept two forms:
                  * Just load address, or just boot file name. The latter
                  * form must be written in a format which can not be
                  * mis-interpreted as a valid number.
                  */
-                addr = simple_strtoul(argv[1], &end, 16);
-                if (end == (argv[1] + strlen(argv[1])))
+                addr = simple_strtoul(argv[optind], &end, 16);
+                if (end == (argv[optind] + strlen(argv[optind])))
                         load_addr = addr;
                 else
-                        ustr = argv[1];
-                        http_parser_parse_url(argv[1],strlen(argv[1]), 0, &url);
+                        ustr = argv[optind];
+                        http_parser_parse_url(argv[optind],strlen(argv[optind]), 0, &url);
                 break;
 
-        case 3:
-                load_addr = simple_strtoul(argv[1], NULL, 16);
-                ustr = argv[2];
-                http_parser_parse_url(argv[2],strlen(argv[2]), 0, &url);
+        case 2:
+                load_addr = simple_strtoul(argv[optind], NULL, 16);
+                ustr = argv[optind+1];
+                http_parser_parse_url(argv[optind+1],strlen(argv[optind+1]), 0, &url);
                 break;
 
         default:
@@ -365,6 +394,7 @@ static int do_wget(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 
 #endif
+
         if (!url.field_data[UF_HOST].len){
                 /* we did not get any valid URL. assume we only got the filename */
                 s = getenv("serverip");
@@ -413,8 +443,14 @@ static int do_wget(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
                         ret = 0;
 
                 /* the the http server respond with data ?? if not return error */
-                if (!body_ok)
+                if (!body_ok){
                         ret = 1;
+                }
+                /* everythgin ok, is it a script ?  */
+                if(script){
+                        ret =  run_command_list((char*)load_addr, cur_load_addr - load_addr, 0);
+
+                }
         }
 
         free(wget_hostname);
@@ -422,8 +458,9 @@ static int do_wget(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         return ret;
 }
 
+
 U_BOOT_CMD(
-        wget,   4,      1,      do_wget,
+        wget,   6,      1,      do_wget,
         "download files from http server",
         "exit with ctrl-c"
         );

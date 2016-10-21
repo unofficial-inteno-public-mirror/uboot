@@ -11,6 +11,7 @@ obj-y  += lwip_start.o
 obj-y  += httpd.o
 obj-y  += wget.o
 obj-y  += y2_image.o
+obj-y  += getopt.o
 
 # used by wget to pars http headers from server. 
 obj-y  += http-parser/http_parser.o

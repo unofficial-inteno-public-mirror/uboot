@@ -199,6 +199,31 @@ int board_eth_init(bd_t *bis)
 }
 #endif
 
+
+
+
+
+
+/* move this to where the rest of the string function lives */
+int strcspn(const char *s,const char *r){
+
+	int i,k,counter=0;
+
+	for(i=0;s[i]!='\0';i++){
+
+		for(k=0;r[k]!='\0';k++){
+			if(s[i]==r[k])
+				break;
+			else
+				counter++;
+		}
+	}
+	return counter;
+}
+
+
+
+
 #define RT2880_PRGIO_ADDR       (RALINK_SYSCTL_BASE + 0x600) // Programmable I/O
 #define RT2880_REG_PIODIR       (RT2880_PRGIO_ADDR + 0x00)
 #define RT2880_REG_PIODATA      (RT2880_PRGIO_ADDR + 0x20)
