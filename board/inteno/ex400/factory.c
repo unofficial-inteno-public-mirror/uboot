@@ -53,12 +53,12 @@ static int do_factory(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
         /* wait on server answering ping */
         while (run_command("ping 192.168.1.2",0))
                 ;
-        
+
         printf("Factory: now we do wget from server on boot script\n");
         sprintf(cmd, "wget -s -t 5 %p ex400_setup", script);
-        printf("running command [%s]\n",cmd);
+        printf("factory: running command [%s]\n",cmd);
         while (run_command(cmd, 0)){
-                printf("timeout trying again [%s]\n",cmd);
+                printf("factory: timeout trying again [%s]\n",cmd);
         }
 
         printf("Factory: command done you should not get here something is wrong!!!!\n");
