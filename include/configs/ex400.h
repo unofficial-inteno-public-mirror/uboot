@@ -153,7 +153,8 @@
 #define NANDID                  "MT7621-NAND"
 #define MTDIDS_DEFAULT          "nand0=" NANDID ""
 #define MTDPARTS_DEFAULT        "mtdparts=" NANDID ":1M(uboot),-(ubi)"
-#define DEFAULT_ETHADDR         "00:AA:BB:CC:DD:10"
+#define DEFAULT_ETHADDR         "00:AA:BB:CC:DD:EE"
+#define CONFIG_OVERWRITE_ETHADDR_ONCE
 
 #define CONFIG_CMD_UBIFS
 #define CONFIG_LZO
