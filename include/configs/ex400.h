@@ -198,9 +198,9 @@
         "format_nand1="\
                 "nand erase.part ubi; reset\0" \
         "format_nand2="\
-	"ubi create env1 19000;" \
-	"ubi create env2 19000;" \
-	"ubi create rootfs_0 2800000;" \
+	"ubi create env1 1f000;" \
+	"ubi create env2 1f000;" \
+	"ubi create rootfs_0 76ac000;" \
 	"saveenv\0"
 
 
