@@ -159,7 +159,7 @@ static int do_httpd(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
         httpd_init();
 
-        lwip_loop();
+        lwip_loop(0);
         lwip_stop();
 
         if (do_reboot)

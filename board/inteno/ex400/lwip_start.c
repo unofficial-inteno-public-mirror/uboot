@@ -35,7 +35,8 @@ int eth_send(void *packet, int length);
 extern u8 net_ethaddr[6];
 extern int lwip_redirect;
 
-char tx_buf[2000];
+static char tx_buf[2000];
+static int timeout_active;
 
 struct netif netif;
 static int loop_active;
@@ -180,14 +181,29 @@ void lwip_break( int delay)
 {
         loop_active = -1*delay;
 
-        if (delay < 0){
+        /* turn off timeout active if break is called to avoid error on return */
+        timeout_active = 0;
+
+        if (delay > 0){
                 delay_start = get_timer(0);
         }
 }
 
-err_t lwip_loop( void)
+
+err_t lwip_loop( int timeout)
 {
         loop_active = 1;
+        timeout_active = 0;
+        delay_start = 0;
+
+        if(timeout) {
+                lwip_break(timeout);
+                /* set timeout active after break so we do return error
+                   if application calls break manually the active timeout will be turned off
+                */
+                timeout_active = 1;
+        }
+
         while(loop_active)
 	{
                 /* if something has been received process it */
@@ -197,15 +213,21 @@ err_t lwip_loop( void)
                 }
                 /* exit on ctrl-c */
 		if(ctrlc()){
-			printf("\nlwip stop.\n\n");
+			printf("\nlwip stop. due to ctrlc\n\n");
                         lwip_redirect = 0;
+                        loop_active = 0;
                         return ERR_IF;
 		}
 
                 /* do we have a delayed shutdown ? */
                 if(loop_active < 0){
-                        if ((-1*loop_active) < get_timer(delay_start))
+                        if ((-1*loop_active) < get_timer(delay_start)){
                                 loop_active = 0;
+                                if (timeout_active){
+                                        lwip_redirect = 0;
+                                        return ERR_IF;
+                                }
+                        }
                 }
 	}
 

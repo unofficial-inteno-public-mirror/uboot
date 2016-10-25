@@ -402,7 +402,7 @@ static int do_wget(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
                 wget_hostname = strdup(s);
 
-                wget_file = malloc(strlen(strdup(ustr))+1);
+                wget_file = malloc(strlen(ustr)+2); /* add / and terminating 0 to filename length */
                 sprintf(wget_file,"/%s",ustr);
 
         }else {
@@ -432,29 +432,35 @@ static int do_wget(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
                 wget();
 
                 /* main loop ctrl-c to quit */
-                ret = lwip_loop();
+                ret = lwip_loop(timeout*1000);
+                printf("wget: lwip_loop return is  %d\n",ret);
+                /* we returned close stuff*/
                 tcp_close(wget_pcb);
                 lwip_stop();
 
                 /* transform lwip err to uboot command return code */
                 if (ret != ERR_OK){
                         ret = 1;
+                        goto out_error;
                 }else
                         ret = 0;
 
                 /* the the http server respond with data ?? if not return error */
                 if (!body_ok){
                         ret = 1;
+                        goto out_error;
                 }
                 /* everythgin ok, is it a script ?  */
                 if(script){
-                        ret =  run_command_list((char*)load_addr, cur_load_addr - load_addr, 0);
+                        ret = run_command_list((char*)load_addr, cur_load_addr - load_addr, 0);
 
                 }
         }
+out_error:
 
         free(wget_hostname);
         free(wget_file);
+        printf("wget: return code is %d\n",ret);
         return ret;
 }
 
