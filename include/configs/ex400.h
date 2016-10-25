@@ -153,14 +153,15 @@
 #define NANDID                  "MT7621-NAND"
 #define MTDIDS_DEFAULT          "nand0=" NANDID ""
 #define MTDPARTS_DEFAULT        "mtdparts=" NANDID ":1M(uboot),-(ubi)"
+#define DEFAULT_ETHADDR         "00:AA:BB:CC:DD:10"
 
 #define CONFIG_CMD_UBIFS
 #define CONFIG_LZO
-#define CONFIG_BOOTCOMMAND "rescue;run boot_ubi"
+#define CONFIG_BOOTCOMMAND "if factory;then echo run rescue;rescue;echo run boot_ubi;run boot_ubi;fi"
 
 
 #define CONFIG_EXTRA_ENV_SETTINGS               \
-        "ethaddr=00:AA:BB:CC:DD:10\0"           \
+        "ethaddr=" DEFAULT_ETHADDR "\0"         \
         "ipaddr=192.168.1.1\0"                  \
         "serverip=192.168.1.2\0"                \
         "mtdparts=" MTDPARTS_DEFAULT "\0"       \
@@ -187,8 +188,9 @@
                 "run bootargs_ubi;" \
                 "ubifsmount ubi0:${root_vol};"\
                 "ubifsload ${loadaddr} /boot/uImage;"\
-                "ubifsload ${fdtaddr} /boot/dtb;"\
-                "bootm ${loadaddr} - ${fdtaddr}\0" \
+                "if ubifsload ${fdtaddr} /boot/dtb; then "\
+                        "bootm ${loadaddr} - ${fdtaddr};"\
+                "fi;\0" \
         "bootargs_ubi=setenv bootargs " \
                 "${extra} console=ttyS0,${baudrate} root=ubi0:${root_vol} ubi.mtd=ubi rootfstype=ubifs ${mtdparts}\0" \
         "bootargs_ram=setenv bootargs " \
