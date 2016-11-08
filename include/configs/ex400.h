@@ -180,6 +180,11 @@
                         "ubi write ${loadaddr} rootfs_0 $filesize;" \
                         "setenv root_vol rootfs_0;" \
                 "fi;\0" \
+        "update_root0y2=" \
+                "if ${dl_prog} ${loadaddr} root.y2; then " \
+                        "y2image burn rootfs_0;" \
+                        "setenv root_vol rootfs_0;" \
+                "fi;\0" \
         "boot_ram="\
                 "run bootargs_ram;" \
                 "${dl_prog} ${loadaddr} initramfs-kernel.bin;"\
