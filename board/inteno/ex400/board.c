@@ -254,6 +254,7 @@ static int do_rescue(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	/* logic inverted a 1 means the button is not pressed */
         if ( ! (RALINK_REG(RT2880_REG_PIODATA) & 1<<18) ){
 		set_led(LED_WPS, LED_STATE_ON);
+		printf("Entering rescue mode\n");
 		run_command("httpd",0);
 	}
 
