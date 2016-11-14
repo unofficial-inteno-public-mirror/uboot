@@ -2,6 +2,7 @@
 #include <common.h>
 #include "serial.h"
 #include "rt_mmap.h"
+#include "led.h"
 
 #define RALINK_REG(x)		(*((volatile u32 *)(x)))
 
@@ -49,6 +50,31 @@ int board_early_init_f(void)
 
 
 	return 0;
+}
+
+/* setup gpio pinmux */
+static void gpiomode(void)
+{
+	//enable MDIO
+	RALINK_REG(0xbe000060) &= ~(1 << 12); //set MDIO to Normal mode
+	RALINK_REG(0xbe000060) &= ~(1 << 14); //set RGMII1 to Normal mode
+	RALINK_REG(0xbe000060) &= ~(1 << 15); //set RGMII2 to Normal mode
+
+	//enable gpio 18, factory default button
+	RALINK_REG(0xbe000060) |= (1 << 8); //set WDT_MODE bit 8
+	RALINK_REG(0xbe000060) &= ~(1 << 9); //set WDT_MODE bit 9
+
+	// led status green, gpio 8 as gpio function
+	RALINK_REG(0xbe000060) &= ~(3 << 3); //clear bit 3 & 4
+	RALINK_REG(0xbe000060) |= (1 << 3); //set bit 3
+
+	// led status red, gpio 11 as gpio function
+	// led wps (green), gpio 12 as gpio function
+	RALINK_REG(0xbe000060) &= ~(3 << 5); //clear bit 5 & 6
+	RALINK_REG(0xbe000060) |= (1 << 5); //set bit 5
+
+
+
 }
 
 void _machine_restart(void)
@@ -169,7 +195,9 @@ int board_early_init_r( void )
 		RALINK_REG(RT2880_RSTSTAT_REG)&=~RT2880_SWCPURST;
 	}
 
+	gpiomode();
 	config_usb_mtk_xhci();
+	ex400_init_leds();
 
 	return 0;
 
@@ -188,20 +216,12 @@ void LANWANPartition(void);
 
 int board_eth_init(bd_t *bis)
 {
-	//enable MDIO
-	RALINK_REG(0xbe000060) &= ~(1 << 12); //set MDIO to Normal mode
-	RALINK_REG(0xbe000060) &= ~(1 << 14); //set RGMII1 to Normal mode
-	RALINK_REG(0xbe000060) &= ~(1 << 15); //set RGMII2 to Normal mode
 	setup_internal_gsw();
 	LANWANPartition();
 
 	return rt2880_eth_initialize(bis);
 }
 #endif
-
-
-
-
 
 
 /* move this to where the rest of the string function lives */
@@ -221,24 +241,19 @@ int strcspn(const char *s,const char *r){
 	return counter;
 }
 
-
-
-
 #define RT2880_PRGIO_ADDR       (RALINK_SYSCTL_BASE + 0x600) // Programmable I/O
 #define RT2880_REG_PIODIR       (RT2880_PRGIO_ADDR + 0x00)
 #define RT2880_REG_PIODATA      (RT2880_PRGIO_ADDR + 0x20)
 
 static int do_rescue(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
-	//enable gpio 18
-	RALINK_REG(0xbe000060) |= (1 << 8); //set WDT_MODE bit 8
-	RALINK_REG(0xbe000060) &= ~(1 << 9); //set WDT_MODE bit 9
 
-        //set GPIO18 as input
+        //set GPIO18 as input, this is the factory default button
         RALINK_REG(RT2880_REG_PIODIR)&= ~(1<<18); //input mode
 
 	/* logic inverted a 1 means the button is not pressed */
         if ( ! (RALINK_REG(RT2880_REG_PIODATA) & 1<<18) ){
+		set_led(LED_WPS, LED_STATE_ON);
 		run_command("httpd",0);
 	}
 
