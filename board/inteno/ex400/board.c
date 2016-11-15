@@ -1,5 +1,7 @@
 
 #include <common.h>
+#include <version.h>
+
 #include "serial.h"
 #include "rt_mmap.h"
 #include "led.h"
@@ -77,6 +79,18 @@ static void gpiomode(void)
 
 }
 
+void version_check(void)
+{
+	char *s;
+	s = getenv("uboot_version");
+	if (s) {
+		if (!strcmp(s, U_BOOT_VERSION_STRING))
+			return;
+	}
+	setenv("uboot_version", U_BOOT_VERSION_STRING);
+	run_command("saveenv", 0);
+}
+
 void _machine_restart(void)
 {
 	void __iomem *reset_base;
@@ -121,7 +135,7 @@ void config_usb_mtk_xhci(void)
                 RALINK_REG(0xbe1d0b10) = 0x23800000;
                 RALINK_REG(0xbe1d0b04) = 0x20000005;
                 RALINK_REG(0xbe1d0b08) = 0x12203200;
-        
+
                 RALINK_REG(0xbe1d0b2c) = 0x1400028;
                 //RALINK_REG(0xbe1d0a30) =;
                 RALINK_REG(0xbe1d0a40) = 0xffff0001;
@@ -198,7 +212,6 @@ int board_early_init_r( void )
 	gpiomode();
 	config_usb_mtk_xhci();
 	ex400_init_leds();
-
 	return 0;
 
 }
@@ -223,6 +236,11 @@ int board_eth_init(bd_t *bis)
 }
 #endif
 
+int board_late_init(void)
+{
+	version_check();
+	return 0;
+}
 
 /* move this to where the rest of the string function lives */
 int strcspn(const char *s,const char *r){

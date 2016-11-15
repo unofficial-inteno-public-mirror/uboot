@@ -4,7 +4,6 @@
 static int do_factory(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
         char *s;
-        int ret;
         char *script;
         char cmd[100];
         printf("Factory command is run\n");
