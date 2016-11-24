@@ -14,6 +14,7 @@ obj-y  += y2_image.o
 obj-y  += getopt.o
 obj-y  += factory.o
 obj-y  += led.o
+obj-y  += iboot.o
 
 # used by wget to pars http headers from server. 
 obj-y  += http-parser/http_parser.o

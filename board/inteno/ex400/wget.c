@@ -308,7 +308,7 @@ wget(void)
 }
 
 
-void getopt_init(void)
+static void getopt_init(void)
 {
         optarg=0;
         optopt=0;
