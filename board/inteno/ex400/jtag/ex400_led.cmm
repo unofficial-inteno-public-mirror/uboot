@@ -1,0 +1,15 @@
+///////////////////////////////////////////////////////////////////////////////
+// basic cpu config for lauterbach
+// 
+B::RES
+B::SYS.CPU MIPS1004KMT
+B::sys.jc 25.mhz
+//B::sys.jc 75.mhz
+//enddo
+B::SYS.M UP
+go
+wait 500.ms
+break
+//B::B::R.S PC 0x89000148
+
+enddo

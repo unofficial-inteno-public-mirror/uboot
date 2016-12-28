@@ -16,7 +16,7 @@ void ex400_init_leds( void )
 
         /* set led status_g on and rest to off */
         set_led(LED_STATUS_G, LED_STATE_ON);
-        set_led(LED_STATUS_R, LED_STATE_OFF);
+        set_led(LED_STATUS_R, LED_STATE_ON);
         set_led(LED_WPS, LED_STATE_OFF);
 }
 

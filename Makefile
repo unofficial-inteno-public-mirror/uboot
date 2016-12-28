@@ -848,7 +848,8 @@ endif
 DDR_CHIP=DEFAULT_DDR3_2048M
 CFG_ENV_IS=IN_NAND
 
-PHONY += mt7621_ram_init
+PHONY += mt7621_ram_init inteno_led_hack
+
 
 mt7621_ram_init: u-boot.bin
 	cp mt7621_stage_L2.bin nand.bin
@@ -864,7 +865,16 @@ mt7621_ram_init: u-boot.bin
 	seek=$(shell echo "(($(shell stat -c %s mt7621_stage_L2.bin)+4095)/4096)*4096-64" | bc) \
 	conv=notrunc
 
-uboot.img:  mt7621_ram_init
+inteno_led_hack: mt7621_ram_init
+	$(CC) $(c_flags) -c inteno_led.S -o inteno_led-elf.o
+	$(LD) -EL -static -n -nostdlib -e_start -pie -Bstatic --gc-sections  -Texamples/standalone/mips.lds -Ttext=0x89004ec0 inteno_led-elf.o -o inteno_led.o
+	$(OBJCOPY) -O binary -j .text inteno_led.o inteno_led.bin
+	dd if=inteno_led.bin of=nand.bin bs=1 count=$(shell stat -c %s u-boot.bin) \
+	seek=$(shell echo "(($(shell stat -c %s mt7621_stage_L2.bin)+4095)/4096)*4096-64-256" | bc) \
+	conv=notrunc
+
+
+uboot.img:  inteno_led_hack
 	./tools/mkimage_mediatek -A mips -T standalone -C none \
 		-a 0xA0200000 -e 0xa0200000 \
 		-n "NAND Flash Image" \
