@@ -87,7 +87,7 @@
 /*
  * Serial driver
  */
-#define CONFIG_BAUDRATE			115200
+#define CONFIG_BAUDRATE			57600
 #define SERIAL_CLOCK_DIVISOR 16
 
 
