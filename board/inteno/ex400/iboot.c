@@ -11,10 +11,25 @@ static void getopt_init(void)
         opterr=0;
 }
 
+
+static void may_reboot(int reboot_counter)
+{
+        /* if counter is to hi there is no point in trying to reboot
+           this prevents an infinite boot loop that would write to ubi
+           every boot.
+        */
+        if (reboot_counter > 10)
+                return;
+
+        run_command("reset",0);
+
+}
+
 static int do_iboot(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
         int opt;
         char *s;
+        int cnt_primary=0, cnt_alt=0;
 
         /* command options */
 
@@ -44,7 +59,6 @@ static int do_iboot(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
                 char *root;
                 char *boot_cnt_primary;
                 char *boot_cnt_alt;
-                int cnt_primary=0, cnt_alt=0;
                 int primary, alt, selected=-1;
                 char *s2;
 
@@ -84,7 +98,7 @@ static int do_iboot(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
                         printf("Aborting boot\n");
                         return 1;
                 }
-                
+
                 printf("      primary system is %d\n", primary);
                 printf("primary boot counter is %d\n", cnt_primary);
                 printf("          alt system is %d\n", alt);
@@ -99,6 +113,7 @@ static int do_iboot(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
                 /* set bootargs with root_vol */
                 if (run_command("run bootargs_ubi", 0)) {
                         printf("Could not run [bootargs_ubi]\n");
+                        may_reboot(cnt_alt);
                         return 1;
                 }
 
@@ -116,6 +131,7 @@ static int do_iboot(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
                 sprintf(buf,"ubifsmount ubi0:rootfs_%d", selected);
                 if (run_command(buf, 0)) {
                         printf("Could not run [%s]\n", buf);
+                        may_reboot(cnt_alt);
                         return 1;
                 }
         }else{
@@ -135,16 +151,19 @@ static int do_iboot(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
         if (run_command("ubifsload ${loadaddr} /boot/uImage", 0)) {
                 printf("Could not run [ubifsload ${loadaddr} /boot/uImage]\n");
+                may_reboot(cnt_alt);
                 return 1;
         }
 
         if (run_command("ubifsload ${fdtaddr} /boot/dtb", 0)) {
                 printf("Could not run [ubifsload ${fdtaddr} /boot/dtb]\n");
+                may_reboot(cnt_alt);
                 return 1;
         }
 
         if (run_command("bootm ${loadaddr} - ${fdtaddr}", 0)) {
                 printf("Could not run [bootm ${loadaddr} - ${fdtaddr}]\n");
+                may_reboot(cnt_alt);
                 return 1;
         }
 
