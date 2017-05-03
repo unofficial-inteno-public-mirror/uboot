@@ -9,11 +9,15 @@ config SYS_VENDOR
 config SYS_CONFIG_NAME
 	default "ex400"
 
+menu "inteno"
+
 config INTENO_MAJOR
-       string
-        default "0"
+       string "Major version for inteno"
+       default "0"
 
 config INTENO_MINOR
-       string
-        default "0"
+       string "Minor version for inteno"
+       default "0"
+
+endmenu
 endif
