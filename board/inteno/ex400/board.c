@@ -8,6 +8,11 @@
 
 #define RALINK_REG(x)		(*((volatile u32 *)(x)))
 
+/* this needs to be included in the image            */
+/* needs to be formatted as one string one line      */
+/* so we can use grep on the uuid and get everything */
+char Inteno_version_string[]={"938f0820-2ffb-11e7-bbc9-2f21351ee6fb: {\"Major\":" CONFIG_INTENO_MAJOR ",\"Minor\":" CONFIG_INTENO_MINOR "}"};
+
 /* running in DRAM(flash) not relocated */
 int board_early_init_f(void)
 {
@@ -88,6 +93,7 @@ void version_check(void)
 			return;
 	}
 	setenv("uboot_version", U_BOOT_VERSION_STRING);
+	setenv("uboot_inteno_version", Inteno_version_string);
 	run_command("saveenv", 0);
 }
 
