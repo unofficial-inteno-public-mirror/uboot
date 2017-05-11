@@ -229,17 +229,37 @@ phys_size_t initdram(int board_type)
 
 #ifdef  CONFIG_CMD_NET
 
+int allow_net = 0;
+
 int rt2880_eth_initialize(bd_t *bis);
 void setup_internal_gsw( void );
 void LANWANPartition(void);
 
 int board_eth_init(bd_t *bis)
 {
-	setup_internal_gsw();
-	LANWANPartition();
+	if(allow_net){
+		setup_internal_gsw();
+		LANWANPartition();
 
-	return rt2880_eth_initialize(bis);
+		return rt2880_eth_initialize(bis);
+	}
+	return -1;
 }
+
+static int do_net_init(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	printf("Init network\n");
+	allow_net = 1;
+	eth_initialize();
+	return 0;
+}
+
+U_BOOT_CMD(
+        net_init,   1,      0,      do_net_init,
+        "Start ethernet driver",
+	"This is needed before any network code."
+        );
+
 #endif
 
 int board_late_init(void)
@@ -278,6 +298,7 @@ static int do_rescue(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	/* logic inverted a 1 means the button is not pressed */
         if ( ! (RALINK_REG(RT2880_REG_PIODATA) & 1<<18) ){
 		set_led(LED_WPS, LED_STATE_ON);
+		run_command("net_init",0);
 		printf("Entering rescue mode\n");
 		run_command("httpd",0);
 	}
